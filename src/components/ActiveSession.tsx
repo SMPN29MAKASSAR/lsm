@@ -34,12 +34,55 @@ export default function ActiveSession({ schedules, users, attendances, submissio
   const mySubmission = submissions.find((s:any) => s.scheduleId === schedule.id && s.userId === currentUser.id);
 
   // --- IMGBB UPLOAD LOGIC ---
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1200; // Ukuran wajar untuk tugas
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              resolve(compressedFile);
+            } else {
+              reject(new Error("Gagal mengompres gambar"));
+            }
+          }, 'image/jpeg', 0.6); // Kompresi ekstrim (Kualitas 60%)
+        };
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const uploadToImgBB = async (file: File) => {
     const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
     if (!apiKey) throw new Error("API Key ImgBB belum diatur di .env (NEXT_PUBLIC_IMGBB_API_KEY)");
     
+    // Kompres gambar otomatis sebelum dikirim
+    const compressedFile = await compressImage(file);
+    
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('image', compressedFile);
     
     const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
       method: 'POST',
@@ -190,7 +233,15 @@ export default function ActiveSession({ schedules, users, attendances, submissio
                       <p className="text-[10px] text-amber-600 font-bold mb-2 uppercase tracking-wider">Instruksi Guru</p>
                       <p className="text-sm font-medium text-amber-900 whitespace-pre-line mb-3">{schedule.taskInstruction || 'Silakan kerjakan.'}</p>
                       {schedule.lkpdFileUrl && (
-                        <a href={schedule.lkpdFileUrl} target="_blank" className="inline-flex items-center text-xs font-bold text-indigo-600 bg-white border border-amber-200 px-3 py-1.5 rounded-lg shadow-sm"><FaImage className="mr-2" /> LKPD: {schedule.lkpdFileName}</a>
+                        <div className="mt-3">
+                          <p className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Lampiran Gambar dari Guru</p>
+                          <img 
+                            src={`/api/proxy?url=${encodeURIComponent(schedule.lkpdFileUrl)}`} 
+                            alt={schedule.lkpdFileName || 'Lampiran'} 
+                            className="w-full rounded-xl border border-slate-200 shadow-sm"
+                            loading="lazy"
+                          />
+                        </div>
                       )}
                     </div>
                     <form onSubmit={handleKumpul} className="space-y-4">
