@@ -13,13 +13,6 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
   
   // Calculate attendance per student
   const siswaList = users?.filter((u:any) => u.role === 'siswa') || [];
-  const rekapHadir = siswaList.map((siswa: any) => {
-    const total = attendances.filter((a:any) => a.userId === siswa.id).length;
-    return { ...siswa, total };
-  }).sort((a:any, b:any) => {
-    if (a.kelas === b.kelas) return a.name.localeCompare(b.name);
-    return a.kelas.localeCompare(b.kelas);
-  });
 
   const cetakPDF = () => {
     window.print();
@@ -61,15 +54,18 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                 <th className="p-4 font-extrabold">Mata Pelajaran / Guru</th>
                 <th className="p-4 font-extrabold text-center">Status Vicon</th>
                 <th className="p-4 font-extrabold text-center no-print">Link Vicon</th>
+                <th className="p-4 font-extrabold text-center">Siswa Hadir</th>
                 <th className="p-4 font-extrabold text-center">Jurnal (Server)</th>
               </tr>
             </thead>
             <tbody className="text-sm text-slate-700 divide-y divide-slate-100">
               {schedules.length === 0 ? (
-                <tr><td colSpan={5} className="p-8 text-center text-slate-400">Belum ada KBM.</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center text-slate-400">Belum ada KBM.</td></tr>
               ) : (
                 schedules.map((s:any) => {
                   const adaJurnal = journals.find((j:any) => j.id === s.id);
+                  const totalHadirKelas = attendances.filter((a:any) => a.scheduleId === s.id).length;
+                  const totalSiswaKelas = users?.filter((u:any) => u.role === 'siswa' && u.kelas === s.kelas).length || 0;
                   return (
                     <tr key={s.id} className="hover:bg-slate-50">
                       <td className="p-4"><span className="font-extrabold text-slate-800 block text-base">{s.kelas}</span><span className="text-xs font-medium text-slate-500"><FaCalendarAlt className="inline mr-1" /> {s.date}</span></td>
@@ -84,6 +80,9 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                             </a>
                           )
                         })() : <span className="text-slate-300">-</span>}
+                      </td>
+                      <td className="p-4 text-center font-bold text-emerald-600">
+                        {totalHadirKelas} <span className="text-slate-400 text-xs font-medium">/ {totalSiswaKelas}</span>
                       </td>
                       <td className="p-4 text-center">
                         {adaJurnal ? (
@@ -109,35 +108,6 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-6" id="laporan-siswa">
-        <div className="p-5 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-          <h3 className="font-extrabold text-slate-800 text-lg">Rekap Total Kehadiran Siswa</h3>
-        </div>
-        <div className="overflow-x-auto p-1">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b-2 border-slate-200">
-                <th className="p-4 font-extrabold">Kelas</th>
-                <th className="p-4 font-extrabold">Nama Siswa</th>
-                <th className="p-4 font-extrabold text-center">Total Hadir</th>
-              </tr>
-            </thead>
-            <tbody className="text-sm text-slate-700 divide-y divide-slate-100">
-              {rekapHadir.length === 0 ? (
-                <tr><td colSpan={3} className="p-8 text-center text-slate-400">Belum ada data siswa.</td></tr>
-              ) : (
-                rekapHadir.map((s:any) => (
-                  <tr key={s.id} className="hover:bg-slate-50">
-                    <td className="p-4"><span className="font-extrabold text-slate-800">{s.kelas}</span></td>
-                    <td className="p-4 font-medium">{s.name}</td>
-                    <td className="p-4 text-center font-bold text-indigo-600">{s.total} Kali</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
   );
 }
