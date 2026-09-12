@@ -23,8 +23,7 @@ export default function Login({ users, addToast }: { users: any[], addToast: any
     <div className="flex items-center justify-center min-h-[85vh] fade-in">
       <div className="bg-white p-8 md:p-10 rounded-3xl shadow-2xl border border-slate-100 w-full max-w-md relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
-        <div className="text-center mb-8">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/Logo_Tut_Wuri_Handayani.png" alt="Logo" className="w-16 h-16 mx-auto mb-4 opacity-90" />
+        <div className="text-center mb-8 mt-2">
           <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">Portal SKPD</h2>
           <p className="text-sm text-slate-500 mt-1 font-medium">Sistem Kendali Pembelajaran Daring</p>
         </div>
