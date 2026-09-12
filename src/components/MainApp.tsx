@@ -66,9 +66,6 @@ export default function MainApp() {
 
   useEffect(() => {
     fetchData();
-    // Poll every 5 seconds for simulation of real-time
-    const interval = setInterval(fetchData, 5000);
-    return () => clearInterval(interval);
   }, [fetchData]);
 
   const extractClasses = (userList: any[]) => {

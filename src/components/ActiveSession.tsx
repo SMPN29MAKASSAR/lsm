@@ -254,7 +254,9 @@ export default function ActiveSession({ schedules, users, attendances, submissio
             <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl shadow-xl border border-slate-700 p-6 text-white relative">
               <div className="flex justify-between items-center mb-6 border-b border-slate-700 pb-3">
                 <h3 className="font-bold text-lg">Live Telemetri Kelas</h3>
-                <span className="flex items-center text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-1 rounded border border-emerald-500/30 uppercase font-bold"><div className="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5 cloud-live-indicator"></div> Sync</span>
+                <button onClick={refreshData} className="flex items-center text-[10px] bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-300 px-2 py-1 rounded border border-emerald-500/30 uppercase font-bold transition-colors cursor-pointer">
+                  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5"></div> Segarkan
+                </button>
               </div>
               
               <div className="bg-white/10 rounded-xl p-4 mb-4">
