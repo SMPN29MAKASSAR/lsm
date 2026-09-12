@@ -1,0 +1,128 @@
+'use client';
+
+import { useState } from 'react';
+import { useAppStore } from '@/store';
+import { createSchedule, deleteSchedule, updateSchedule } from '@/app/actions';
+import { FaCalendarCheck, FaPlusCircle, FaTimes, FaCloudUploadAlt, FaChalkboardTeacher, FaCalendarAlt, FaPen, FaTrash, FaListAlt } from 'react-icons/fa';
+
+export default function GuruDashboard({ schedules, classes, addToast, refreshData }: { schedules: any[], classes: string[], addToast: any, refreshData: any }) {
+  const { currentUser, setView, systemDate } = useAppStore();
+  const [showForm, setShowForm] = useState(false);
+  
+  const [kelas, setKelas] = useState('');
+  const [tanggal, setTanggal] = useState(systemDate);
+
+  const mySchedules = schedules.filter(s => s.teacherId === currentUser?.id);
+
+  const handleBuat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) return;
+    
+    const data = {
+      teacherId: currentUser.id,
+      teacherName: currentUser.name,
+      mapel: currentUser.mapel || '',
+      kelas: kelas,
+      date: tanggal,
+    };
+    
+    const res = await createSchedule(data);
+    if(res.success) {
+      setShowForm(false);
+      addToast('Jadwal divalidasi ke Cloud Server.', 'success');
+      refreshData();
+    } else {
+      addToast('Gagal simpan jadwal.', 'error');
+    }
+  };
+
+  const handleHapus = async (id: string) => {
+    if(confirm('Jadwal yang dihapus tidak dapat dikembalikan. Yakin?')) {
+      const res = await deleteSchedule(id);
+      if(res.success) {
+        addToast('Jadwal dihapus.', 'info');
+        refreshData();
+      } else {
+        addToast('Gagal hapus.', 'error');
+      }
+    }
+  };
+
+  return (
+    <div className="fade-in space-y-6">
+      <div className="bg-gradient-to-r from-emerald-800 to-emerald-600 p-8 rounded-2xl shadow-lg text-white flex flex-col md:flex-row justify-between items-center relative overflow-hidden">
+        <FaCalendarCheck className="absolute right-0 top-0 text-[120px] opacity-10 -mt-6 -mr-4" />
+        <div className="relative z-10 w-full md:w-auto mb-6 md:mb-0">
+          <h2 className="text-3xl font-extrabold tracking-tight">Manajemen Sesi Guru</h2>
+          <p className="text-emerald-100 mt-1 font-medium">Mapel Pengampu: <span className="bg-white/20 px-2 py-0.5 rounded font-bold ml-1">{currentUser?.mapel}</span></p>
+        </div>
+        <button onClick={() => setShowForm(!showForm)} className="relative z-10 w-full md:w-auto bg-white text-emerald-800 font-bold py-3 px-6 rounded-xl shadow-xl hover:bg-emerald-50 flex items-center justify-center">
+          <FaPlusCircle className="mr-2 text-emerald-500" /> Buat Jadwal Baru
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-md mb-6 relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-indigo-500"></div>
+          <div className="flex justify-between items-center mb-5 border-b border-slate-100 pb-3">
+            <h3 className="font-extrabold text-slate-800 text-lg">Parameter Jadwal Daring</h3>
+            <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-slate-700"><FaTimes /></button>
+          </div>
+          <form onSubmit={handleBuat} className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div>
+              <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Kelas Tujuan</label>
+              <select value={kelas} onChange={e=>setKelas(e.target.value)} required className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500">
+                <option value="" disabled>Pilih Kelas</option>
+                {classes.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Pilih Tanggal</label>
+              <input type="date" value={tanggal} onChange={e=>setTanggal(e.target.value)} required className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500" />
+            </div>
+            <div className="flex items-end">
+              <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-md flex items-center justify-center"><FaCloudUploadAlt className="mr-2" /> Sinkronisasi Jadwal</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      <div className="pt-2">
+        <h3 className="font-extrabold text-xl text-slate-800 mb-5 flex items-center"><FaListAlt className="text-slate-400 mr-2" /> Daftar Sesi KBM Anda</h3>
+        {mySchedules.length === 0 ? (
+          <div className="p-8 text-center text-slate-500 bg-slate-50 rounded-xl border border-slate-200 border-dashed">
+            <p>Belum ada jadwal yang disiapkan.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {mySchedules.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map(s => {
+              const isToday = s.date === systemDate;
+              return (
+                <div key={s.id} className={`bg-white border ${isToday ? 'border-emerald-300 shadow-md ring-1 ring-emerald-500' : 'border-slate-200 shadow-sm'} rounded-xl p-5 relative flex flex-col group`}>
+                  {isToday && <div className="absolute -top-3 -right-3 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md uppercase tracking-wider">Berjalan Hari Ini</div>}
+                  
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className={`w-12 h-12 rounded-xl ${isToday ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'} flex items-center justify-center text-xl shrink-0`}>
+                      <FaChalkboardTeacher />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-800 text-lg">{s.kelas}</h3>
+                      <p className="text-xs font-medium text-slate-500 flex items-center"><FaCalendarAlt className="mr-1" /> {s.date}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-auto pt-4 flex gap-2">
+                    <button onClick={() => setView('active_session', {scheduleId: s.id})} className={`flex-grow py-2 rounded-lg text-sm font-bold transition-colors ${isToday ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md' : 'bg-slate-800 hover:bg-slate-900 text-white shadow-md'}`}>
+                      {isToday ? 'Kelola Kelas Sekarang' : 'Siapkan Materi'}
+                    </button>
+                    <button onClick={() => handleHapus(s.id)} className="w-10 h-10 rounded-lg bg-slate-100 text-slate-600 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition-colors shadow-sm"><FaTrash /></button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

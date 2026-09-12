@@ -1,0 +1,129 @@
+'use client';
+
+import { useEffect, useState, useCallback } from 'react';
+import { useAppStore } from '@/store';
+import { 
+  getUsers, getSchedules, getAttendances, getSubmissions, getJournals, seedUsers 
+} from '@/app/actions';
+import Header from './Header';
+import Login from './Login';
+import AdminDashboard from './AdminDashboard';
+import GuruDashboard from './GuruDashboard';
+import SiswaDashboard from './SiswaDashboard';
+import KepsekDashboard from './KepsekDashboard';
+import ActiveSession from './ActiveSession';
+import ToastContainer from './ToastContainer';
+
+export default function MainApp() {
+  const { currentUser, currentView } = useAppStore();
+  const [loading, setLoading] = useState(true);
+  
+  // Local state for "cloud" data
+  const [users, setUsers] = useState<any[]>([]);
+  const [classes, setClasses] = useState<string[]>([]);
+  const [schedules, setSchedules] = useState<any[]>([]);
+  const [attendances, setAttendances] = useState<any[]>([]);
+  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [journals, setJournals] = useState<any[]>([]);
+
+  const [toasts, setToasts] = useState<any[]>([]);
+
+  const addToast = (pesan: string, tipe: 'success' | 'error' | 'info' = 'info') => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, pesan, tipe }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  };
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [_users, _schedules, _attendances, _submissions, _journals] = await Promise.all([
+        getUsers(), getSchedules(), getAttendances(), getSubmissions(), getJournals()
+      ]);
+      
+      if (_users.length === 0) {
+        await seedUsers();
+        const _usersNew = await getUsers();
+        setUsers(_usersNew);
+        extractClasses(_usersNew);
+      } else {
+        setUsers(_users);
+        extractClasses(_users);
+      }
+      
+      setSchedules(_schedules);
+      setAttendances(_attendances);
+      setSubmissions(_submissions);
+      setJournals(_journals);
+    } catch (e) {
+      console.error(e);
+      addToast('Gagal memuat data dari database', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+    // Poll every 5 seconds for simulation of real-time
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  const extractClasses = (userList: any[]) => {
+    const classSet = new Set<string>();
+    userList.forEach(u => {
+      if (u.role === 'siswa' && u.kelas) classSet.add(u.kelas);
+    });
+    setClasses(Array.from(classSet).sort());
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="animate-spin text-4xl text-indigo-500 mb-4 border-t-2 border-indigo-500 rounded-full w-10 h-10"></div>
+        <p className="font-bold text-slate-600">Menyinkronkan Data Cloud Dinas...</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Header />
+      <ToastContainer toasts={toasts} />
+      
+      <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="app-container">
+        {!currentUser && <Login users={users} addToast={addToast} />}
+        
+        {currentUser && currentView === 'dashboard' && currentUser.role === 'admin' && (
+          <AdminDashboard users={users} addToast={addToast} refreshData={fetchData} />
+        )}
+        
+        {currentUser && currentView === 'dashboard' && currentUser.role === 'guru' && (
+          <GuruDashboard schedules={schedules} classes={classes} addToast={addToast} refreshData={fetchData} />
+        )}
+        
+        {currentUser && currentView === 'dashboard' && currentUser.role === 'siswa' && (
+          <SiswaDashboard schedules={schedules} />
+        )}
+        
+        {currentUser && currentView === 'dashboard' && currentUser.role === 'kepsek' && (
+          <KepsekDashboard schedules={schedules} attendances={attendances} submissions={submissions} journals={journals} />
+        )}
+
+        {currentUser && currentView === 'active_session' && (
+          <ActiveSession 
+            schedules={schedules} 
+            users={users} 
+            attendances={attendances} 
+            submissions={submissions} 
+            journals={journals} 
+            addToast={addToast} 
+            refreshData={fetchData} 
+          />
+        )}
+      </main>
+    </>
+  );
+}

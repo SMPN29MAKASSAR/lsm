@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id // NISN or NIP or ADMIN
+  name      String
+  role      String   // admin, kepsek, guru, siswa
+  kelas     String?
+  mapel     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Schedule {
+  id              String   @id @default(cuid())
+  teacherId       String
+  teacherName     String
+  mapel           String
+  kelas           String
+  date            String   // Format YYYY-MM-DD
+  viconLink       String?
+  taskInstruction String?
+  lkpdFileName    String?
+  lkpdFileUrl     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Attendance {
+  id         String   @id @default(cuid())
+  scheduleId String
+  userId     String
+  time       String
+  method     String
+  createdAt  DateTime @default(now())
+
+  @@unique([scheduleId, userId])
+}
+
+model Submission {
+  id         String   @id @default(cuid())
+  scheduleId String
+  userId     String
+  text       String
+  fileName   String?
+  fileUrl    String?
+  createdAt  DateTime @default(now())
+
+  @@unique([scheduleId, userId])
+}
+
+model Journal {
+  id         String   @id // usually scheduleId
+  text       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
