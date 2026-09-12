@@ -11,34 +11,13 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
   const totalHadir = attendances.length;
   const totalTugas = submissions.length;
 
-  const cetakPDF = async () => {
-    try {
-      const element = document.getElementById('laporan-tabel');
-      if(!element) {
-        alert("Tabel laporan tidak ditemukan.");
-        return;
-      }
-      
-      // Menggunakan versi CDN global
-      // @ts-ignore
-      if (typeof window !== 'undefined' && window.html2pdf) {
-        // @ts-ignore
-        window.html2pdf().set({
-          margin: 10, filename: `Laporan_SKPD_${systemDate}.pdf`, image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-        }).from(element).save();
-      } else {
-        alert("Modul PDF belum selesai dimuat. Silakan tunggu beberapa detik dan coba lagi.");
-      }
-    } catch (e) {
-      console.error(e);
-      alert("Terjadi kesalahan saat mencetak PDF.");
-    }
+  const cetakPDF = () => {
+    window.print();
   };
 
   return (
     <div className="fade-in space-y-6">
-      <div className="bg-gradient-to-br from-slate-900 to-black p-8 rounded-2xl shadow-2xl text-white flex justify-between items-end relative overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-900 to-black p-8 rounded-2xl shadow-2xl text-white flex justify-between items-end relative overflow-hidden no-print">
         <div className="absolute right-0 top-0 opacity-20"><FaChartPie className="text-[180px] -mt-10 -mr-10" /></div>
         <div className="relative z-10 w-full flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div>
@@ -47,13 +26,13 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
               <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2 cloud-live-indicator"></span> Real-time Cloud Telemetry
             </p>
           </div>
-          <button onClick={cetakPDF} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg flex items-center text-sm">
+          <button onClick={cetakPDF} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg flex items-center text-sm cursor-pointer">
             <FaFilePdf className="mr-2" /> Cetak Laporan KBM (PDF)
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-5 no-print">
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden"><FaCalendarAlt className="absolute top-0 right-0 p-4 opacity-5 text-6xl" /><p className="text-xs text-slate-400 font-bold uppercase mb-2 tracking-wider">Jadwal Tervalidasi</p><p className="text-4xl font-extrabold text-slate-800">{totalSchedules}</p></div>
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden"><FaVideo className="absolute top-0 right-0 p-4 opacity-5 text-6xl text-blue-500" /><p className="text-xs text-slate-400 font-bold uppercase mb-2 tracking-wider">Kelas Terbuka</p><p className="text-4xl font-extrabold text-blue-600">{openSchedules}</p></div>
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden"><FaUserCheck className="absolute top-0 right-0 p-4 opacity-5 text-6xl text-emerald-500" /><p className="text-xs text-slate-400 font-bold uppercase mb-2 tracking-wider">Presensi Hadir</p><p className="text-4xl font-extrabold text-emerald-600">{totalHadir}</p></div>
