@@ -119,7 +119,7 @@ export default function MainApp() {
         )}
         
         {currentUser && currentView === 'dashboard' && currentUser.role === 'kepsek' && (
-          <KepsekDashboard schedules={schedules} attendances={attendances} submissions={submissions} journals={journals} />
+          <KepsekDashboard schedules={schedules} attendances={attendances} submissions={submissions} journals={journals} users={users} />
         )}
 
         {currentUser && currentView === 'active_session' && (

@@ -99,18 +99,18 @@ export default function ActiveSession({ schedules, users, attendances, submissio
   // GURU ACTIONS
   const handleSetLink = async () => {
     const res = await updateSchedule(schedule.id, { viconLink: vicon });
-    if(res.success) { addToast("Link disinkronkan.", "success"); refreshData(); }
+    if(res.success) { addToast("Pintu kelas dibuka!", "success"); refreshData(); }
   };
   
-  const handleSetTugas = async () => {
+  const handleBroadcastTask = async () => {
     try {
       setIsUploading(true);
       let fileUrl = schedule.lkpdFileUrl;
       let fileName = schedule.lkpdFileName;
       
-      if (guruFile) {
-        fileUrl = await uploadToImgBB(guruFile);
-        fileName = guruFile.name;
+      if (uploadTaskFile) {
+        fileUrl = await uploadToImgBB(uploadTaskFile);
+        fileName = uploadTaskFile.name;
       }
       
       const res = await updateSchedule(schedule.id, { 
@@ -120,8 +120,8 @@ export default function ActiveSession({ schedules, users, attendances, submissio
       });
       
       if(res.success) { 
-        addToast("Tugas & LKPD disebar ke Siswa.", "success"); 
-        setGuruFile(null);
+        addToast("Tugas & LKPD dibroadcast ke semua siswa!", "success"); 
+        setUploadTaskFile(null);
         refreshData(); 
       }
     } catch (e: any) {
@@ -132,8 +132,28 @@ export default function ActiveSession({ schedules, users, attendances, submissio
   };
 
   const handleSetJurnal = async () => {
-    const res = await saveJournal(schedule.id, jurnal);
-    if(res.success) { addToast("Jurnal disinkronisasi.", "success"); refreshData(); }
+    try {
+      setIsUploadingJurnal(true);
+      let newPhotos = existingJurnal?.photoUrls || [];
+      
+      if (jurnalPhotos.length > 0) {
+        addToast(`Mengupload ${jurnalPhotos.length} foto dokumentasi...`, "info");
+        const uploadPromises = jurnalPhotos.map(file => uploadToImgBB(file));
+        const uploadedUrls = await Promise.all(uploadPromises);
+        newPhotos = [...newPhotos, ...uploadedUrls];
+      }
+
+      const res = await saveJournal(schedule.id, jurnal, newPhotos);
+      if(res.success) { 
+        addToast("Jurnal disinkronisasi.", "success"); 
+        refreshData(); 
+        setJurnalPhotos([]); 
+      }
+    } catch (error: any) {
+      addToast(error.message, "error");
+    } finally {
+      setIsUploadingJurnal(false);
+    }
   };
 
   // SISWA ACTIONS
@@ -306,12 +326,39 @@ export default function ActiveSession({ schedules, users, attendances, submissio
               </button>
             </div>
             
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-slate-800"></div>
-              <h3 className="font-bold text-slate-800 mb-4 text-lg">Jurnal Mengajar</h3>
-              <textarea value={jurnal} onChange={e=>setJurnal(e.target.value)} rows={2} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm mb-3" placeholder="Isi materi pokok hari ini..."></textarea>
-              <button onClick={handleSetJurnal} className="bg-slate-200 text-slate-800 px-5 py-2.5 rounded-xl font-bold w-full text-sm">Simpan ke Laporan Kepsek</button>
-            </div>
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 relative overflow-hidden">
+                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-slate-800"></div>
+                <h3 className="font-bold text-slate-800 mb-4 text-lg">Jurnal & Dokumentasi PBM</h3>
+                <textarea value={jurnal} onChange={e=>setJurnal(e.target.value)} rows={2} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm mb-3" placeholder="Isi materi pokok hari ini..."></textarea>
+                
+                <div className="mb-4">
+                  <p className="text-[10px] text-slate-500 font-bold uppercase mb-2">Upload Dokumentasi PBM (Bisa lebih dari 1 foto)</p>
+                  <input 
+                    type="file" 
+                    multiple
+                    accept="image/*"
+                    onChange={e => {
+                      if (e.target.files) setJurnalPhotos(Array.from(e.target.files));
+                    }}
+                    className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
+                  />
+                  {jurnalPhotos.length > 0 && <p className="text-xs text-emerald-600 font-bold mt-2">{jurnalPhotos.length} foto siap diupload</p>}
+                </div>
+
+                {existingJurnal?.photoUrls && existingJurnal.photoUrls.length > 0 && (
+                  <div className="mb-4 grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {existingJurnal.photoUrls.map((url: string, idx: number) => (
+                      <div key={idx} className="relative rounded-lg overflow-hidden border border-slate-200 shadow-sm aspect-video">
+                        <img src={`/api/proxy?url=${encodeURIComponent(url)}`} className="object-cover w-full h-full" alt={`Dokumentasi ${idx+1}`} loading="lazy" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <button onClick={handleSetJurnal} disabled={isUploadingJurnal} className={`px-5 py-2.5 rounded-xl font-bold w-full text-sm transition-colors ${isUploadingJurnal ? 'bg-slate-100 text-slate-400' : 'bg-slate-800 hover:bg-slate-900 text-white shadow-md'}`}>
+                  {isUploadingJurnal ? <><FaSpinner className="animate-spin inline mr-2" /> Menyimpan Jurnal & Foto...</> : 'Simpan Jurnal & Dokumentasi'}
+                </button>
+              </div>
           </div>
 
           <div className="space-y-6">

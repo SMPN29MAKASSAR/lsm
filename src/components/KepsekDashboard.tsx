@@ -3,13 +3,23 @@
 import { useAppStore } from '@/store';
 import { FaChartPie, FaFilePdf, FaCalendarAlt, FaVideo, FaUserCheck, FaFileAlt, FaCheckCircle, FaMinus } from 'react-icons/fa';
 
-export default function KepsekDashboard({ schedules, attendances, submissions, journals }: any) {
+export default function KepsekDashboard({ schedules, attendances, submissions, journals, users }: any) {
   const { systemDate } = useAppStore();
 
   const totalSchedules = schedules.length;
   const openSchedules = schedules.filter((s:any) => s.viconLink && s.viconLink !== '').length;
   const totalHadir = attendances.length;
   const totalTugas = submissions.length;
+  
+  // Calculate attendance per student
+  const siswaList = users?.filter((u:any) => u.role === 'siswa') || [];
+  const rekapHadir = siswaList.map((siswa: any) => {
+    const total = attendances.filter((a:any) => a.userId === siswa.id).length;
+    return { ...siswa, total };
+  }).sort((a:any, b:any) => {
+    if (a.kelas === b.kelas) return a.name.localeCompare(b.name);
+    return a.kelas.localeCompare(b.kelas);
+  });
 
   const cetakPDF = () => {
     window.print();
@@ -64,10 +74,54 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                       <td className="p-4"><span className="font-extrabold text-slate-800 block text-base">{s.kelas}</span><span className="text-xs font-medium text-slate-500"><FaCalendarAlt className="inline mr-1" /> {s.date}</span></td>
                       <td className="p-4"><span className="font-bold text-indigo-700 block">{s.mapel}</span><span className="text-xs font-medium text-slate-500">{s.teacherName}</span></td>
                       <td className="p-4 text-center">{s.viconLink ? <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded text-[10px] font-bold uppercase">Terbuka</span> : <span className="bg-slate-100 text-slate-500 px-3 py-1 rounded text-[10px] font-bold uppercase">Tertutup</span>}</td>
-                      <td className="p-4 text-center text-xl">{adaJurnal ? <FaCheckCircle className="text-emerald-500 mx-auto" /> : <FaMinus className="text-slate-300 mx-auto" />}</td>
+                      <td className="p-4 text-center">
+                        {adaJurnal ? (
+                          <div>
+                            <FaCheckCircle className="text-emerald-500 mx-auto text-xl mb-1" />
+                            {adaJurnal.photoUrls && adaJurnal.photoUrls.length > 0 && (
+                              <div className="flex justify-center gap-1 mt-2">
+                                {adaJurnal.photoUrls.slice(0, 3).map((url: string, i: number) => (
+                                  <img key={i} src={`/api/proxy?url=${encodeURIComponent(url)}`} className="w-6 h-6 rounded object-cover shadow-sm border border-slate-200" alt="Dok" loading="lazy" />
+                                ))}
+                                {adaJurnal.photoUrls.length > 3 && <span className="text-[9px] font-bold text-slate-500 flex items-center bg-slate-100 px-1 rounded">+{adaJurnal.photoUrls.length - 3}</span>}
+                              </div>
+                            )}
+                          </div>
+                        ) : <FaMinus className="text-slate-300 mx-auto text-xl" />}
+                      </td>
                     </tr>
                   )
                 })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-6" id="laporan-siswa">
+        <div className="p-5 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+          <h3 className="font-extrabold text-slate-800 text-lg">Rekap Total Kehadiran Siswa</h3>
+        </div>
+        <div className="overflow-x-auto p-1">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b-2 border-slate-200">
+                <th className="p-4 font-extrabold">Kelas</th>
+                <th className="p-4 font-extrabold">Nama Siswa</th>
+                <th className="p-4 font-extrabold text-center">Total Hadir</th>
+              </tr>
+            </thead>
+            <tbody className="text-sm text-slate-700 divide-y divide-slate-100">
+              {rekapHadir.length === 0 ? (
+                <tr><td colSpan={3} className="p-8 text-center text-slate-400">Belum ada data siswa.</td></tr>
+              ) : (
+                rekapHadir.map((s:any) => (
+                  <tr key={s.id} className="hover:bg-slate-50">
+                    <td className="p-4"><span className="font-extrabold text-slate-800">{s.kelas}</span></td>
+                    <td className="p-4 font-medium">{s.name}</td>
+                    <td className="p-4 text-center font-bold text-indigo-600">{s.total} Kali</td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

@@ -26,6 +26,7 @@ export default function Login({ users, addToast }: { users: any[], addToast: any
         <div className="text-center mb-8 mt-2">
           <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">Portal SKPD</h2>
           <p className="text-sm text-slate-500 mt-1 font-medium">Sistem Kendali Pembelajaran Daring</p>
+          <p className="text-sm text-indigo-600 font-bold mt-1">UPT SPF SMPN 29 Makassar</p>
         </div>
         
         <form onSubmit={handleLogin} className="space-y-6">

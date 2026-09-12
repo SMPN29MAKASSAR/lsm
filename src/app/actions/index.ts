@@ -156,12 +156,12 @@ export async function getJournals() {
   }
 }
 
-export async function saveJournal(id: string, text: string) {
+export async function saveJournal(id: string, text: string, photoUrls?: string[]) {
   try {
     await prisma.journal.upsert({
       where: { id },
-      update: { text },
-      create: { id, text },
+      update: { text, ...(photoUrls ? { photoUrls } : {}) },
+      create: { id, text, photoUrls: photoUrls || [] },
     });
     revalidatePath('/');
     return { success: true };

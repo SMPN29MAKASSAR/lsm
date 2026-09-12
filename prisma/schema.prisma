@@ -59,6 +59,7 @@ model Submission {
 model Journal {
   id         String   @id // usually scheduleId
   text       String
+  photoUrls  String[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
