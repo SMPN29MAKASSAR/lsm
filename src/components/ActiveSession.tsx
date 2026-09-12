@@ -156,7 +156,7 @@ export default function ActiveSession({ schedules, users, attendances, submissio
               {!schedule.viconLink ? (
                 <div className="text-center bg-slate-50 border border-slate-200 border-dashed rounded-xl py-8"><FaDoorClosed className="text-4xl mx-auto mb-3 text-slate-300" /><p className="text-sm font-bold text-slate-500">Guru belum mensetting Link Kelas.</p></div>
               ) : (
-                <button onClick={handleAbsenMasuk} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg flex justify-center items-center">
+                <button onClick={handleAbsenMasuk} className={`w-full text-white font-bold py-4 rounded-xl shadow-lg flex justify-center items-center transition-colors ${myAttendance ? 'bg-emerald-600 hover:bg-emerald-700 border-2 border-emerald-500 shadow-emerald-500/30' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
                   <FaVideo className="mr-2 text-xl" /> {myAttendance ? 'Masuk Kembali ke Ruang Virtual' : 'Klik Hadir & Masuk Kelas Virtual'}
                 </button>
               )}
