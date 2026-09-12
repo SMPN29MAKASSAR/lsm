@@ -223,7 +223,15 @@ export default function ActiveSession({ schedules, users, attendances, submissio
                       <p className="text-xs font-bold text-slate-400 mb-2 uppercase">Jawaban Anda:</p>
                       <p className="text-sm font-medium text-slate-700 p-3 bg-white rounded border border-slate-100">"{mySubmission.text}"</p>
                       {mySubmission.fileUrl && (
-                        <a href={mySubmission.fileUrl} target="_blank" className="mt-3 inline-flex items-center text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-lg"><FaImage className="mr-2" /> Lihat Lampiran ({mySubmission.fileName})</a>
+                        <div className="mt-3">
+                          <p className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Lampiran Gambar Anda</p>
+                          <img 
+                            src={`/api/proxy?url=${encodeURIComponent(mySubmission.fileUrl)}`} 
+                            alt={mySubmission.fileName || 'Lampiran'} 
+                            className="w-full max-w-sm rounded-xl border border-slate-200 shadow-sm"
+                            loading="lazy"
+                          />
+                        </div>
                       )}
                     </div>
                   </div>
@@ -360,9 +368,17 @@ export default function ActiveSession({ schedules, users, attendances, submissio
                       {tugas ? (
                         <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-inner">
                           <p className="text-sm font-medium text-slate-700 italic">"{tugas.text}"</p>
-                          {tugas.fileUrl && (
-                            <a href={tugas.fileUrl} target="_blank" className="mt-3 inline-flex items-center text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-lg"><FaImage className="mr-2" /> Buka Lampiran</a>
-                          )}
+                            {tugas.fileUrl && (
+                              <div className="mt-3">
+                                <p className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Lampiran Gambar Siswa</p>
+                                <img 
+                                  src={`/api/proxy?url=${encodeURIComponent(tugas.fileUrl)}`} 
+                                  alt="Lampiran Siswa" 
+                                  className="w-full max-w-xs rounded-xl border border-slate-200 shadow-sm"
+                                  loading="lazy"
+                                />
+                              </div>
+                            )}
                         </div>
                       ) : (
                         <div className="h-full flex items-center justify-center bg-slate-50 rounded-lg border border-slate-200 border-dashed py-3"><span className="text-xs font-bold text-slate-400">Belum ada tugas disubmit</span></div>
