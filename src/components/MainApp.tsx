@@ -81,11 +81,11 @@ export default function MainApp() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="animate-spin text-4xl text-indigo-500 mb-4 border-t-2 border-indigo-500 rounded-full w-10 h-10"></div>
-        <p className="font-bold text-slate-600">Menyinkronkan Data Cloud Dinas...</p>
-      </div>
-    );
+      <div className="flex h-screen items-center justify-center bg-slate-50">
+        <div className="text-center fade-in flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+        </div>
+      </div>);
   }
 
   return (
