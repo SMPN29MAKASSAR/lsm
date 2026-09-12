@@ -1,15 +1,27 @@
 'use client';
 
+import { useState } from 'react';
 import { useAppStore } from '@/store';
-import { FaChartPie, FaFilePdf, FaCalendarAlt, FaVideo, FaUserCheck, FaFileAlt, FaCheckCircle, FaMinus } from 'react-icons/fa';
+import { FaChartPie, FaFilePdf, FaCalendarAlt, FaVideo, FaUserCheck, FaFileAlt, FaCheckCircle, FaMinus, FaSearch } from 'react-icons/fa';
 
 export default function KepsekDashboard({ schedules, attendances, submissions, journals, users }: any) {
   const { systemDate } = useAppStore();
+  
+  const [filterText, setFilterText] = useState('');
 
   const totalSchedules = schedules.length;
   const openSchedules = schedules.filter((s:any) => s.viconLink && s.viconLink !== '').length;
   const totalHadir = attendances.length;
   const totalTugas = submissions.length;
+  
+  const filteredSchedules = schedules.filter((s:any) => {
+    if (!filterText) return true;
+    const search = filterText.toLowerCase();
+    return s.date.toLowerCase().includes(search) || 
+           s.kelas.toLowerCase().includes(search) || 
+           s.mapel.toLowerCase().includes(search) || 
+           s.teacherName.toLowerCase().includes(search);
+  });
   
   // Calculate attendance per student
   const siswaList = users?.filter((u:any) => u.role === 'siswa') || [];
@@ -43,8 +55,21 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" id="laporan-tabel">
-        <div className="p-5 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-          <h3 className="font-extrabold text-slate-800 text-lg">Buku Besar Pengawasan KBM</h3>
+        <div className="p-5 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
+          <h3 className="font-extrabold text-slate-800 text-lg">
+            Laporan Pembelajaran Daring <br className="hidden print:block" />
+            <span className="text-sm font-semibold text-indigo-600 print:text-slate-800 print:text-lg">UPT SPF SMPN 29 Makassar</span>
+          </h3>
+          <div className="relative w-full md:w-64 no-print">
+            <FaSearch className="absolute left-3 top-3.5 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Cari Tanggal / Kelas..." 
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+            />
+          </div>
         </div>
         <div className="overflow-x-auto p-1">
           <table className="w-full text-left border-collapse">
@@ -55,14 +80,14 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                 <th className="p-4 font-extrabold text-center">Status Vicon</th>
                 <th className="p-4 font-extrabold text-center no-print">Link Vicon</th>
                 <th className="p-4 font-extrabold text-center">Siswa Hadir</th>
-                <th className="p-4 font-extrabold text-center">Jurnal (Server)</th>
+                <th className="p-4 font-extrabold text-center">Bukti</th>
               </tr>
             </thead>
             <tbody className="text-sm text-slate-700 divide-y divide-slate-100">
-              {schedules.length === 0 ? (
+              {filteredSchedules.length === 0 ? (
                 <tr><td colSpan={6} className="p-8 text-center text-slate-400">Belum ada KBM.</td></tr>
               ) : (
-                schedules.map((s:any) => {
+                filteredSchedules.map((s:any) => {
                   const adaJurnal = journals.find((j:any) => j.id === s.id);
                   const totalHadirKelas = attendances.filter((a:any) => a.scheduleId === s.id).length;
                   const totalSiswaKelas = users?.filter((u:any) => u.role === 'siswa' && u.kelas === s.kelas).length || 0;
@@ -91,9 +116,9 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                             {adaJurnal.photoUrls && adaJurnal.photoUrls.length > 0 && (
                               <div className="flex justify-center gap-1 mt-2">
                                 {adaJurnal.photoUrls.slice(0, 3).map((url: string, i: number) => (
-                                  <img key={i} src={`/api/proxy?url=${encodeURIComponent(url)}`} className="w-6 h-6 rounded object-cover shadow-sm border border-slate-200" alt="Dok" loading="lazy" />
+                                  <img key={i} src={`/api/proxy?url=${encodeURIComponent(url)}`} className="w-16 h-16 md:w-20 md:h-20 rounded object-cover shadow-sm border border-slate-200 hover:scale-150 transition-transform cursor-pointer" alt="Dok" loading="lazy" />
                                 ))}
-                                {adaJurnal.photoUrls.length > 3 && <span className="text-[9px] font-bold text-slate-500 flex items-center bg-slate-100 px-1 rounded">+{adaJurnal.photoUrls.length - 3}</span>}
+                                {adaJurnal.photoUrls.length > 3 && <span className="text-xs font-bold text-slate-500 flex items-center bg-slate-100 px-2 rounded-lg">+{adaJurnal.photoUrls.length - 3}</span>}
                               </div>
                             )}
                           </div>
@@ -105,9 +130,14 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
               )}
             </tbody>
           </table>
+          
+          <div className="hidden print:flex flex-col items-end mt-12 pr-12 pb-10">
+            <p className="mb-1 text-sm">Makassar, {systemDate}</p>
+            <p className="mb-24 text-sm font-bold">Kepala Sekolah</p>
+            <p className="text-sm font-bold border-b border-black pb-0.5">Hj. Nur Rahma, S.Pd., M.Pd.</p>
+          </div>
         </div>
       </div>
-
     </div>
   );
 }
