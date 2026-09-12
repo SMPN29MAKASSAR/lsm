@@ -222,10 +222,15 @@ export default function ActiveSession({ schedules, users, attendances, submissio
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 relative overflow-hidden">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500"></div>
               <h3 className="font-bold text-slate-800 mb-4 text-lg flex items-center"><FaLink className="text-blue-500 mr-2" /> Pintu Ruang Kelas</h3>
-              <div className="flex space-x-2">
+              <div className="flex space-x-2 mb-2">
                 <input type="url" value={vicon} onChange={e=>setVicon(e.target.value)} className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500" placeholder="Paste link Zoom/Gmeet/WA Group..." />
-                <button onClick={handleSetLink} className="bg-blue-600 text-white px-5 rounded-xl font-bold shadow-md">SET</button>
+                <button onClick={handleSetLink} className={`px-5 rounded-xl font-bold shadow-md text-white transition-colors ${vicon === schedule.viconLink && vicon !== '' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                  {vicon === schedule.viconLink && vicon !== '' ? <span className="flex items-center"><FaCheck className="mr-1"/> OKE</span> : 'SET'}
+                </button>
               </div>
+              {schedule.viconLink && (
+                <p className="text-[10px] text-emerald-600 font-bold flex items-center"><FaCheck className="mr-1" /> Link sedang aktif dan sudah bisa diklik oleh Siswa.</p>
+              )}
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 relative overflow-hidden">
