@@ -12,16 +12,28 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
   const totalTugas = submissions.length;
 
   const cetakPDF = async () => {
-    const element = document.getElementById('laporan-tabel');
-    if(!element) return;
-    
-    // Import dynamically to avoid Next.js SSR 'self is not defined' error
-    const html2pdf = (await import('html2pdf.js')).default;
-    
-    html2pdf().set({
-      margin: 10, filename: `Laporan_SKPD_${systemDate}.pdf`, image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-    }).from(element).save();
+    try {
+      const element = document.getElementById('laporan-tabel');
+      if(!element) {
+        alert("Tabel laporan tidak ditemukan.");
+        return;
+      }
+      
+      // Menggunakan versi CDN global
+      // @ts-ignore
+      if (typeof window !== 'undefined' && window.html2pdf) {
+        // @ts-ignore
+        window.html2pdf().set({
+          margin: 10, filename: `Laporan_SKPD_${systemDate}.pdf`, image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        }).from(element).save();
+      } else {
+        alert("Modul PDF belum selesai dimuat. Silakan tunggu beberapa detik dan coba lagi.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Terjadi kesalahan saat mencetak PDF.");
+    }
   };
 
   return (
