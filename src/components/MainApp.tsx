@@ -36,37 +36,50 @@ export default function MainApp() {
     }, 4000);
   };
 
-  const fetchData = useCallback(async () => {
+  const fetchInitialData = useCallback(async () => {
+    try {
+      let _users = await getUsers();
+      
+      if (_users.length === 0) {
+        await seedUsers();
+        _users = await getUsers();
+      }
+      setUsers(_users);
+      extractClasses(_users);
+    } catch (e) {
+      console.error(e);
+      addToast('Gagal memuat data pengguna', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const refreshData = useCallback(async () => {
     try {
       const [_users, _schedules, _attendances, _submissions, _journals] = await Promise.all([
         getUsers(), getSchedules(), getAttendances(), getSubmissions(), getJournals()
       ]);
-      
-      if (_users.length === 0) {
-        await seedUsers();
-        const _usersNew = await getUsers();
-        setUsers(_usersNew);
-        extractClasses(_usersNew);
-      } else {
-        setUsers(_users);
-        extractClasses(_users);
-      }
-      
+      setUsers(_users);
+      extractClasses(_users);
       setSchedules(_schedules);
       setAttendances(_attendances);
       setSubmissions(_submissions);
       setJournals(_journals);
     } catch (e) {
       console.error(e);
-      addToast('Gagal memuat data dari database', 'error');
-    } finally {
-      setLoading(false);
+      addToast('Gagal menyinkronkan data terbaru', 'error');
     }
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchInitialData();
+  }, [fetchInitialData]);
+
+  useEffect(() => {
+    if (currentUser) {
+      refreshData();
+    }
+  }, [currentUser, refreshData]);
 
   const extractClasses = (userList: any[]) => {
     const classSet = new Set<string>();
@@ -94,11 +107,11 @@ export default function MainApp() {
         {!currentUser && <Login users={users} addToast={addToast} />}
         
         {currentUser && currentView === 'dashboard' && currentUser.role === 'admin' && (
-          <AdminDashboard users={users} addToast={addToast} refreshData={fetchData} />
+          <AdminDashboard users={users} addToast={addToast} refreshData={refreshData} />
         )}
         
         {currentUser && currentView === 'dashboard' && currentUser.role === 'guru' && (
-          <GuruDashboard schedules={schedules} classes={classes} addToast={addToast} refreshData={fetchData} />
+          <GuruDashboard schedules={schedules} classes={classes} addToast={addToast} refreshData={refreshData} />
         )}
         
         {currentUser && currentView === 'dashboard' && currentUser.role === 'siswa' && (
@@ -117,7 +130,7 @@ export default function MainApp() {
             submissions={submissions} 
             journals={journals} 
             addToast={addToast} 
-            refreshData={fetchData} 
+            refreshData={refreshData} 
           />
         )}
       </main>
