@@ -22,7 +22,7 @@ export default function Header() {
                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5 cloud-live-indicator"></div> LIVE
               </span>
             </div>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Dinas Pendidikan Provinsi</p>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Dinas Pendidikan Kota Makassar</p>
           </div>
         </div>
         

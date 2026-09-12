@@ -60,12 +60,13 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                 <th className="p-4 font-extrabold">Tanggal & Kelas</th>
                 <th className="p-4 font-extrabold">Mata Pelajaran / Guru</th>
                 <th className="p-4 font-extrabold text-center">Status Vicon</th>
+                <th className="p-4 font-extrabold text-center no-print">Link Vicon</th>
                 <th className="p-4 font-extrabold text-center">Jurnal (Server)</th>
               </tr>
             </thead>
             <tbody className="text-sm text-slate-700 divide-y divide-slate-100">
               {schedules.length === 0 ? (
-                <tr><td colSpan={4} className="p-8 text-center text-slate-400">Belum ada KBM.</td></tr>
+                <tr><td colSpan={5} className="p-8 text-center text-slate-400">Belum ada KBM.</td></tr>
               ) : (
                 schedules.map((s:any) => {
                   const adaJurnal = journals.find((j:any) => j.id === s.id);
@@ -74,6 +75,13 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                       <td className="p-4"><span className="font-extrabold text-slate-800 block text-base">{s.kelas}</span><span className="text-xs font-medium text-slate-500"><FaCalendarAlt className="inline mr-1" /> {s.date}</span></td>
                       <td className="p-4"><span className="font-bold text-indigo-700 block">{s.mapel}</span><span className="text-xs font-medium text-slate-500">{s.teacherName}</span></td>
                       <td className="p-4 text-center">{s.viconLink ? <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded text-[10px] font-bold uppercase">Terbuka</span> : <span className="bg-slate-100 text-slate-500 px-3 py-1 rounded text-[10px] font-bold uppercase">Tertutup</span>}</td>
+                      <td className="p-4 text-center no-print">
+                        {s.viconLink ? (
+                          <a href={s.viconLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1.5 rounded-lg transition-colors">
+                            <FaVideo className="mr-1.5" /> Gabung
+                          </a>
+                        ) : <span className="text-slate-300">-</span>}
+                      </td>
                       <td className="p-4 text-center">
                         {adaJurnal ? (
                           <div>
