@@ -102,7 +102,12 @@ export default function ActiveSession({ schedules, users, attendances, submissio
 
   // GURU ACTIONS
   const handleSetLink = async () => {
-    const res = await updateSchedule(schedule.id, { viconLink: vicon });
+    let finalLink = vicon.trim();
+    if (finalLink && !finalLink.startsWith('http://') && !finalLink.startsWith('https://')) {
+      finalLink = 'https://' + finalLink;
+      setVicon(finalLink);
+    }
+    const res = await updateSchedule(schedule.id, { viconLink: finalLink });
     if(res.success) { addToast("Pintu kelas dibuka!", "success"); refreshData(); }
   };
   
@@ -166,7 +171,11 @@ export default function ActiveSession({ schedules, users, attendances, submissio
     if(res.success) {
       addToast("Hadir tercatat di Server!", "success");
       refreshData();
-      setTimeout(() => window.open(schedule.viconLink, '_blank', 'noopener,noreferrer'), 800);
+      let linkToOpen = schedule.viconLink;
+      if (linkToOpen && !linkToOpen.startsWith('http://') && !linkToOpen.startsWith('https://')) {
+        linkToOpen = 'https://' + linkToOpen;
+      }
+      setTimeout(() => window.open(linkToOpen, '_blank', 'noopener,noreferrer'), 800);
     }
   };
 
