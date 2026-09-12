@@ -2,7 +2,13 @@ import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-export const prisma = globalForPrisma.prisma || new PrismaClient();
+let dbUrl = process.env.DATABASE_URL || '';
+// Hapus tanda kutip jika user tidak sengaja memasukkannya di Vercel
+dbUrl = dbUrl.replace(/^["']|["']$/g, '');
+
+export const prisma = globalForPrisma.prisma || new PrismaClient({
+  datasources: { db: { url: dbUrl } }
+});
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
