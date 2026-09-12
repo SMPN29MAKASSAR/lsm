@@ -21,6 +21,10 @@ export default function ActiveSession({ schedules, users, attendances, submissio
   const [guruFile, setGuruFile] = useState<File | null>(null);
   const [siswaFile, setSiswaFile] = useState<File | null>(null);
 
+  const [jurnalPhotos, setJurnalPhotos] = useState<File[]>([]);
+  const [isUploadingJurnal, setIsUploadingJurnal] = useState(false);
+  const existingJurnal = journals.find((j:any) => j.id === activeScheduleId);
+
   if (!currentUser || !schedule) return <div className="p-8 text-center text-red-500">Sesi invalid!</div>;
 
   const isGuru = currentUser.role === 'guru';
@@ -108,9 +112,9 @@ export default function ActiveSession({ schedules, users, attendances, submissio
       let fileUrl = schedule.lkpdFileUrl;
       let fileName = schedule.lkpdFileName;
       
-      if (uploadTaskFile) {
-        fileUrl = await uploadToImgBB(uploadTaskFile);
-        fileName = uploadTaskFile.name;
+      if (guruFile) {
+        fileUrl = await uploadToImgBB(guruFile);
+        fileName = guruFile.name;
       }
       
       const res = await updateSchedule(schedule.id, { 
@@ -121,7 +125,7 @@ export default function ActiveSession({ schedules, users, attendances, submissio
       
       if(res.success) { 
         addToast("Tugas & LKPD dibroadcast ke semua siswa!", "success"); 
-        setUploadTaskFile(null);
+        setGuruFile(null);
         refreshData(); 
       }
     } catch (e: any) {
@@ -321,7 +325,7 @@ export default function ActiveSession({ schedules, users, attendances, submissio
                 <input type="file" accept="image/*" onChange={e => setGuruFile(e.target.files?.[0] || null)} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100" />
                 {schedule.lkpdFileUrl && !guruFile && <p className="text-[10px] text-emerald-600 mt-2 font-bold flex items-center"><FaCheck className="mr-1"/> LKPD Aktif: {schedule.lkpdFileName}</p>}
               </div>
-              <button onClick={handleSetTugas} disabled={isUploading} className="w-full bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white py-3 rounded-xl font-bold shadow-md text-sm flex items-center justify-center">
+              <button onClick={handleBroadcastTask} disabled={isUploading} className="w-full bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white py-3 rounded-xl font-bold shadow-md text-sm flex items-center justify-center">
                 {isUploading ? <><FaSpinner className="mr-2 animate-spin" /> Mengunggah ke ImgBB...</> : 'Broadcast Tugas & LKPD'}
               </button>
             </div>
