@@ -132,7 +132,15 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
           </table>
           
           <div className="hidden print:flex flex-col items-end mt-12 pr-12 pb-10">
-            <p className="mb-1 text-sm">Makassar, {systemDate}</p>
+            <p className="mb-1 text-sm">Makassar, {(() => {
+              if (!systemDate) return '';
+              const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+              const parts = systemDate.split('-');
+              if (parts.length === 3) {
+                return `${parseInt(parts[2], 10)} ${months[parseInt(parts[1], 10) - 1]} ${parts[0]}`;
+              }
+              return systemDate;
+            })()}</p>
             <p className="mb-24 text-sm font-bold">Kepala Sekolah</p>
             <p className="text-sm font-bold border-b border-black pb-0.5">Hj. Nur Rahma, S.Pd., M.Pd.</p>
           </div>
