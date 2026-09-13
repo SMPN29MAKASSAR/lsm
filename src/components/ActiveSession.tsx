@@ -209,7 +209,6 @@ export default function ActiveSession({ schedules, users, attendances, submissio
         <button onClick={() => setView('dashboard')} className="bg-white border border-slate-200 px-4 py-2 rounded-lg text-slate-600 hover:text-slate-900 font-bold text-sm shadow-sm flex items-center">
           <FaArrowLeft className="mr-2" /> Kembali
         </button>
-        <div className="bg-slate-800 text-white text-xs font-bold px-3 py-1.5 rounded-lg font-mono">ID: {schedule.id}</div>
       </div>
       
       <div className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 flex flex-col md:flex-row justify-between items-center ${isGuru ? 'bg-gradient-to-r from-emerald-50 to-white border-l-8 border-l-emerald-500' : 'bg-gradient-to-r from-indigo-50 to-white border-l-8 border-l-indigo-500'}`}>
