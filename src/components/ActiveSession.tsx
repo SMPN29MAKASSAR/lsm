@@ -31,11 +31,16 @@ export default function ActiveSession({ schedules, users, attendances, submissio
   const [h, m] = systemTime.split(':').map(Number);
   const currentMins = h * 60 + m;
 
-  let isViconClosed = false;
-  if (schedule.endTime) {
+  let viconStatus = 'open'; // 'open', 'early', 'closed'
+  if (schedule.startTime && schedule.endTime) {
+    const [sh, sm] = schedule.startTime.split(':').map(Number);
     const [eh, em] = schedule.endTime.split(':').map(Number);
-    if (!isNaN(eh) && !isNaN(em) && currentMins > (eh * 60 + em)) {
-      isViconClosed = true;
+    const startMins = sh * 60 + sm;
+    const endMins = eh * 60 + em;
+    if (currentMins < startMins) {
+      viconStatus = 'early';
+    } else if (currentMins > endMins) {
+      viconStatus = 'closed';
     }
   }
 
@@ -233,7 +238,9 @@ export default function ActiveSession({ schedules, users, attendances, submissio
               {myAttendance ? <span className="bg-emerald-100 text-emerald-700 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold border border-emerald-200">Hadir Otomatis</span> : <span className="bg-slate-200 text-slate-600 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold">Belum Absen</span>}
             </div>
             <div className="p-6">
-                {isViconClosed ? (
+                {viconStatus === 'early' ? (
+                  <div className="text-center bg-amber-50 border border-amber-200 border-dashed rounded-xl py-8"><FaClock className="text-4xl mx-auto mb-3 text-amber-300" /><p className="text-sm font-bold text-amber-600">Sesi Virtual belum dimulai.</p></div>
+                ) : viconStatus === 'closed' ? (
                   <div className="text-center bg-red-50 border border-red-200 border-dashed rounded-xl py-8"><FaClock className="text-4xl mx-auto mb-3 text-red-300" /><p className="text-sm font-bold text-red-500">Sesi Virtual telah berakhir.</p></div>
                 ) : !schedule.viconLink ? (
                 <div className="text-center bg-slate-50 border border-slate-200 border-dashed rounded-xl py-8"><FaDoorClosed className="text-4xl mx-auto mb-3 text-slate-300" /><p className="text-sm font-bold text-slate-500">Guru belum mensetting Link Kelas.</p></div>
@@ -326,7 +333,11 @@ export default function ActiveSession({ schedules, users, attendances, submissio
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 relative overflow-hidden">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500"></div>
               <h3 className="font-bold text-slate-800 mb-4 text-lg flex items-center"><FaLink className="text-blue-500 mr-2" /> Pintu Ruang Kelas</h3>
-                {isViconClosed ? (
+                {viconStatus === 'early' ? (
+                  <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-center text-sm font-bold text-amber-600 mb-4">
+                    Jadwal kelas belum dimulai.
+                  </div>
+                ) : viconStatus === 'closed' ? (
                   <div className="bg-red-50 p-3 rounded-xl border border-red-200 text-center text-sm font-bold text-red-600 mb-4">
                     Jadwal kelas telah berakhir.
                   </div>
