@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useAppStore } from '@/store';
 import PanduanSiswaModal from './PanduanSiswaModal';
-import { FaUserGraduate, FaExclamationTriangle, FaFolderOpen, FaBookOpen, FaUserTie, FaArrowRight, FaLock } from 'react-icons/fa';
+import { FaUserGraduate, FaExclamationTriangle, FaFolderOpen, FaBookOpen, FaUserTie, FaArrowRight, FaLock, FaClock } from 'react-icons/fa';
 
 export default function SiswaDashboard({ schedules }: { schedules: any[] }) {
   const { currentUser, setView, systemDate, systemTime } = useAppStore();

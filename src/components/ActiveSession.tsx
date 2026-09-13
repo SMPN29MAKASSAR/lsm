@@ -23,8 +23,23 @@ export default function ActiveSession({ schedules, users, attendances, submissio
   const [jurnalPhotos, setJurnalPhotos] = useState<File[]>([]);
   const [isUploadingJurnal, setIsUploadingJurnal] = useState(false);
   const existingJurnal = journals.find((j:any) => j.id === activeScheduleId);
+  if (!currentUser) return null;
+  if (schedules.length === 0) return <div className="p-12 text-center text-slate-500 flex flex-col items-center"><FaSpinner className="animate-spin text-4xl mb-4 text-indigo-500" /><p>Memuat sesi...</p></div>;
+  if (!schedule) return <div className="p-12 text-center text-red-500 font-bold">Sesi invalid atau telah dihapus!</div>;
 
-  if (!currentUser || !schedule) return <div className="p-8 text-center text-red-500">Sesi invalid!</div>;
+
+  const [h, m] = systemTime.split(':').map(Number);
+  const currentMins = h * 60 + m;
+
+  let isViconClosed = false;
+  if (schedule.endTime) {
+    const [eh, em] = schedule.endTime.split(':').map(Number);
+    if (!isNaN(eh) && !isNaN(em) && currentMins > (eh * 60 + em)) {
+      isViconClosed = true;
+    }
+  }
+
+  const isTaskClosed = currentMins >= (18 * 60);
 
   const isGuru = currentUser.role === 'guru';
   const isSiswa = currentUser.role === 'siswa';
@@ -218,7 +233,9 @@ export default function ActiveSession({ schedules, users, attendances, submissio
               {myAttendance ? <span className="bg-emerald-100 text-emerald-700 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold border border-emerald-200">Hadir Otomatis</span> : <span className="bg-slate-200 text-slate-600 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold">Belum Absen</span>}
             </div>
             <div className="p-6">
-              {!schedule.viconLink ? (
+                {isViconClosed ? (
+                  <div className="text-center bg-red-50 border border-red-200 border-dashed rounded-xl py-8"><FaClock className="text-4xl mx-auto mb-3 text-red-300" /><p className="text-sm font-bold text-red-500">Sesi Virtual telah berakhir.</p></div>
+                ) : !schedule.viconLink ? (
                 <div className="text-center bg-slate-50 border border-slate-200 border-dashed rounded-xl py-8"><FaDoorClosed className="text-4xl mx-auto mb-3 text-slate-300" /><p className="text-sm font-bold text-slate-500">Guru belum mensetting Link Kelas.</p></div>
               ) : (
                 <button onClick={handleAbsenMasuk} className={`w-full text-white font-bold py-4 rounded-xl shadow-lg flex justify-center items-center transition-colors ${myAttendance ? 'bg-emerald-600 hover:bg-emerald-700 border-2 border-emerald-500 shadow-emerald-500/30' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
@@ -274,7 +291,12 @@ export default function ActiveSession({ schedules, users, attendances, submissio
                         </div>
                       )}
                     </div>
-                    <form onSubmit={handleKumpul} className="space-y-4">
+                      {isTaskClosed ? (
+                        <div className="bg-red-50 p-4 rounded-xl border border-red-200 text-center text-sm font-bold text-red-600">
+                          Waktu pengumpulan tugas telah ditutup (Melewati pukul 18:00 WITA).
+                        </div>
+                      ) : (
+                      <form onSubmit={handleKumpul} className="space-y-4">
                       <div>
                         <label className="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-wide">Refleksi / Jawaban</label>
                         <textarea value={studentText} onChange={e=>setStudentText(e.target.value)} required rows={3} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-amber-500"></textarea>
@@ -288,6 +310,7 @@ export default function ActiveSession({ schedules, users, attendances, submissio
                         {isUploading ? <><FaSpinner className="mr-2 animate-spin" /> Mengunggah...</> : <><FaCloudUploadAlt className="mr-2" /> Kirim ke Guru</>}
                       </button>
                     </form>
+                    )}
                   </>
                 )
               )}
@@ -303,6 +326,12 @@ export default function ActiveSession({ schedules, users, attendances, submissio
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 relative overflow-hidden">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500"></div>
               <h3 className="font-bold text-slate-800 mb-4 text-lg flex items-center"><FaLink className="text-blue-500 mr-2" /> Pintu Ruang Kelas</h3>
+                {isViconClosed ? (
+                  <div className="bg-red-50 p-3 rounded-xl border border-red-200 text-center text-sm font-bold text-red-600 mb-4">
+                    Jadwal kelas telah berakhir.
+                  </div>
+                ) : (
+                <>
               <div className="flex space-x-2 mb-2">
                 <input type="url" value={schedule.viconLink || ''} readOnly className="flex-1 p-3 bg-slate-100 border border-slate-200 rounded-xl text-sm outline-none text-slate-500 cursor-not-allowed" placeholder="Belum ada link yang disetel Admin" />
                 {schedule.viconLink && (
@@ -313,7 +342,9 @@ export default function ActiveSession({ schedules, users, attendances, submissio
               </div>
               {schedule.viconLink && (
                 <p className="text-[10px] text-emerald-600 font-bold flex items-center"><FaCheck className="mr-1" /> Link telah disiapkan oleh Admin.</p>
-              )}
+                )}
+                </>
+                )}
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 relative overflow-hidden">

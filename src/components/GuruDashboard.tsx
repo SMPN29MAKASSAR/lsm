@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { useAppStore } from '@/store';
 import { createSchedule, deleteSchedule, updateSchedule } from '@/app/actions';
 import PanduanGuruModal from './PanduanGuruModal';
-import { FaCalendarCheck, FaPlusCircle, FaTimes, FaCloudUploadAlt, FaChalkboardTeacher, FaCalendarAlt, FaPen, FaTrash, FaListAlt, FaBookOpen } from 'react-icons/fa';
+import { FaCalendarCheck, FaPlusCircle, FaTimes, FaCloudUploadAlt, FaChalkboardTeacher, FaCalendarAlt, FaPen, FaTrash, FaListAlt, FaBookOpen, FaClock } from 'react-icons/fa';
 
 export default function GuruDashboard({ schedules, classes, addToast, refreshData }: { schedules: any[], classes: string[], addToast: any, refreshData: any }) {
-  const { currentUser, setView, systemDate } = useAppStore();
+  const { currentUser, setView, systemDate, systemTime } = useAppStore();
+  const [h, m] = (systemTime || '00:00').split(':').map(Number);
+  const currentMins = h * 60 + m;
   const [showForm, setShowForm] = useState(false);
   const [showPanduan, setShowPanduan] = useState(false);
   
