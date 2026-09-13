@@ -9,6 +9,7 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
   
   const [filterText, setFilterText] = useState('');
   const [filterDate, setFilterDate] = useState('');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const totalSchedules = schedules.length;
   const openSchedules = schedules.filter((s:any) => s.viconLink && s.viconLink !== '').length;
@@ -33,6 +34,7 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
   };
 
   return (
+    <>
     <div className="fade-in space-y-6">
       <div className="bg-gradient-to-br from-slate-900 to-black p-8 rounded-2xl shadow-2xl text-white flex justify-between items-end relative overflow-hidden no-print">
         <div className="absolute right-0 top-0 opacity-20"><FaChartPie className="text-[180px] -mt-10 -mr-10" /></div>
@@ -119,11 +121,11 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                                 <div className="flex flex-wrap justify-center gap-2 mt-3">
                                   {adaJurnal.photoUrls.map((url: string, i: number) => {
                                     const len = adaJurnal.photoUrls.length;
-                                    let imgClass = "w-32 h-32 md:w-40 md:h-40";
-                                    if (len === 2) imgClass = "w-24 h-24 md:w-32 md:h-32";
-                                    else if (len >= 3) imgClass = "w-20 h-20 md:w-28 md:h-28";
+                                    let imgClass = "h-48 md:h-64";
+                                    if (len === 2) imgClass = "h-32 md:h-48";
+                                    else if (len >= 3) imgClass = "h-24 md:h-32";
                                     return (
-                                      <img key={i} src={`/api/proxy?url=${encodeURIComponent(url)}`} className={`${imgClass} rounded-xl object-cover shadow border border-slate-200 hover:scale-[1.8] hover:z-50 relative transition-transform cursor-pointer origin-center`} alt="Dok" loading="lazy" />
+                                      <img key={i} onClick={() => setSelectedImage(url)} src={`/api/proxy?url=${encodeURIComponent(url)}`} className={`${imgClass} w-auto rounded-xl object-contain shadow-md border-2 border-slate-200 hover:shadow-lg hover:border-indigo-400 transition-all cursor-pointer`} alt="Dok" loading="lazy" />
                                     );
                                   })}
                                 </div>
@@ -154,5 +156,16 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
         </div>
       </div>
     </div>
+    {selectedImage && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fadeIn" onClick={() => setSelectedImage(null)}>
+        <div className="relative max-w-7xl max-h-[95vh] flex flex-col items-center">
+          <button onClick={() => setSelectedImage(null)} className="absolute -top-12 right-0 text-white hover:text-red-400 bg-white/20 hover:bg-white/30 rounded-full w-10 h-10 flex items-center justify-center transition-colors">
+            <FaMinus className="text-xl rotate-45" />
+          </button>
+          <img src={`/api/proxy?url=${encodeURIComponent(selectedImage)}`} className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl border border-white/20" alt="Preview Full" />
+        </div>
+      </div>
+    )}
+    </>
   );
 }
