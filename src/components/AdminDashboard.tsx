@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useAppStore } from '@/store';
-import { createUser, createUsers, deleteUser, deleteUsers, createSchedules, createSchedule, deleteSchedule } from '@/app/actions';
-import { FaDatabase, FaFileExcel, FaUserPlus, FaDownload, FaUpload, FaTrash } from 'react-icons/fa';
+import { createUser, createUsers, deleteUser, deleteUsers, createSchedules, createSchedule, deleteSchedule, updateSchedule } from '@/app/actions';
+import { FaDatabase, FaFileExcel, FaUserPlus, FaDownload, FaUpload, FaTrash, FaEdit } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 
 export default function AdminDashboard({ users, schedules, addToast, refreshData }: { users: any[], schedules?: any[], addToast: any, refreshData: any }) {
@@ -20,6 +20,9 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
   const [jadwalDate, setJadwalDate] = useState('');
   const [jadwalKelas, setJadwalKelas] = useState<string[]>([]);
   const [jadwalLink, setJadwalLink] = useState('');
+
+  const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
+  const [editJadwalLink, setEditJadwalLink] = useState('');
 
   const [filterText, setFilterText] = useState('');
   const [filterRole, setFilterRole] = useState('');
@@ -304,6 +307,19 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
       refreshData();
     } else {
       addToast('Gagal menghapus jadwal: ' + res.error, 'error');
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingScheduleId) return;
+    addToast('Menyimpan perubahan...', 'info');
+    const res = await updateSchedule(editingScheduleId, { viconLink: editJadwalLink });
+    if (res.success) {
+      addToast('Jadwal berhasil diperbarui', 'success');
+      setEditingScheduleId(null);
+      refreshData();
+    } else {
+      addToast('Gagal memperbarui: ' + res.error, 'error');
     }
   };
 
@@ -625,17 +641,36 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
                     filteredSchedules.map((s: any, idx: number) => (
                       <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors text-sm text-slate-700">
                         <td className="p-3 text-center text-slate-400 font-bold">{idx + 1}</td>
-                        <td className="p-3 font-bold text-slate-900">{s.teacher?.name || '-'}</td>
-                        <td className="p-3 font-medium">{s.teacher?.mapel || '-'}</td>
+                        <td className="p-3 font-bold text-slate-900">{s.teacherName || '-'}</td>
+                        <td className="p-3 font-medium">{s.mapel || '-'}</td>
                         <td className="p-3">
                           <span className="font-bold">{s.date}</span>
-                          {s.link && <div className="text-[10px] text-blue-500 truncate max-w-[150px] mt-1" title={s.link}>{s.link}</div>}
+                          {editingScheduleId === s.id ? (
+                            <div className="mt-2 flex gap-1 items-center">
+                              <input type="text" value={editJadwalLink} onChange={e => setEditJadwalLink(e.target.value)} className="w-full text-xs p-1 border border-blue-300 rounded outline-none" placeholder="Link Zoom/Meet" />
+                              <button onClick={handleSaveEdit} className="text-xs bg-blue-600 text-white px-2 py-1 rounded font-bold hover:bg-blue-700">Simpan</button>
+                              <button onClick={() => setEditingScheduleId(null)} className="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded font-bold hover:bg-slate-300">Batal</button>
+                            </div>
+                          ) : (
+                            s.viconLink && (
+                              <div className="mt-2">
+                                <a href={s.viconLink.startsWith('http') ? s.viconLink : `https://${s.viconLink}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-1 px-3 py-1 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 rounded-full text-[10px] font-bold transition-colors uppercase tracking-wide">
+                                  <span>GABUNG VICON</span>
+                                </a>
+                              </div>
+                            )
+                          )}
                         </td>
-                        <td className="p-3"><span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold">{s.classes}</span></td>
+                        <td className="p-3"><span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-bold uppercase">{s.kelas || '-'}</span></td>
                         <td className="p-3 text-right">
-                          <button onClick={() => handleDeleteSchedule(s.id)} className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Hapus Jadwal">
-                            <FaTrash />
-                          </button>
+                          <div className="flex justify-end gap-1">
+                            <button onClick={() => { setEditingScheduleId(s.id); setEditJadwalLink(s.viconLink || ''); }} className="text-amber-500 hover:text-amber-700 p-2 hover:bg-amber-50 rounded-lg transition-colors" title="Edit Link Jadwal">
+                              <FaEdit />
+                            </button>
+                            <button onClick={() => handleDeleteSchedule(s.id)} className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Hapus Jadwal">
+                              <FaTrash />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
