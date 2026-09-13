@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import { useAppStore } from '@/store';
 import { createSchedule, deleteSchedule, updateSchedule } from '@/app/actions';
-import { FaCalendarCheck, FaPlusCircle, FaTimes, FaCloudUploadAlt, FaChalkboardTeacher, FaCalendarAlt, FaPen, FaTrash, FaListAlt } from 'react-icons/fa';
+import PanduanGuruModal from './PanduanGuruModal';
+import { FaCalendarCheck, FaPlusCircle, FaTimes, FaCloudUploadAlt, FaChalkboardTeacher, FaCalendarAlt, FaPen, FaTrash, FaListAlt, FaBookOpen } from 'react-icons/fa';
 
 export default function GuruDashboard({ schedules, classes, addToast, refreshData }: { schedules: any[], classes: string[], addToast: any, refreshData: any }) {
   const { currentUser, setView, systemDate } = useAppStore();
   const [showForm, setShowForm] = useState(false);
+  const [showPanduan, setShowPanduan] = useState(false);
   
   const [kelas, setKelas] = useState<string[]>([]);
   const [tanggal, setTanggal] = useState(systemDate);
@@ -61,9 +63,14 @@ export default function GuruDashboard({ schedules, classes, addToast, refreshDat
           <h2 className="text-3xl font-extrabold tracking-tight">Manajemen Sesi Guru</h2>
           <p className="text-emerald-100 mt-1 font-medium">Mapel Pengampu: <span className="bg-white/20 px-2 py-0.5 rounded font-bold ml-1">{currentUser?.mapel}</span></p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="relative z-10 w-full md:w-auto bg-white text-emerald-800 font-bold py-3 px-6 rounded-xl shadow-xl hover:bg-emerald-50 flex items-center justify-center">
-          <FaPlusCircle className="mr-2 text-emerald-500" /> Buat Jadwal Baru
-        </button>
+        <div className="relative z-10 flex gap-3 w-full md:w-auto">
+          <button onClick={() => setShowPanduan(true)} className="flex-1 md:flex-none bg-white/20 hover:bg-white/30 text-white border border-white/30 font-bold py-3 px-4 rounded-xl text-sm flex justify-center items-center transition-colors shadow-sm backdrop-blur-sm">
+            <FaBookOpen className="mr-2 text-lg" /> Buku Panduan
+          </button>
+          <button onClick={() => setShowForm(!showForm)} className="flex-1 md:flex-none bg-white text-emerald-800 font-bold py-3 px-6 rounded-xl shadow-xl hover:bg-emerald-50 flex items-center justify-center">
+            <FaPlusCircle className="mr-2 text-emerald-500" /> Buat Jadwal Baru
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -141,6 +148,7 @@ export default function GuruDashboard({ schedules, classes, addToast, refreshDat
           </div>
         )}
       </div>
+      {showPanduan && <PanduanGuruModal onClose={() => setShowPanduan(false)} />}
     </div>
   );
 }
