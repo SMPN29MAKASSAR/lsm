@@ -22,7 +22,6 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
   const [jadwalLink, setJadwalLink] = useState('');
 
   const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
-  const [editData, setEditData] = useState<any>({});
 
   const [filterText, setFilterText] = useState('');
   const [filterRole, setFilterRole] = useState('');
@@ -70,13 +69,26 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
       viconLink: formattedLink || null
     };
 
-    const res = await createSchedule(data);
-    if (res.success) {
-      addToast(`Jadwal untuk ${teacher.name} berhasil dibuat!`, 'success');
-      setJadwalTeacherId(''); setJadwalDate(''); setJadwalKelas([]); setJadwalLink('');
-      refreshData();
+    if (editingScheduleId) {
+      addToast('Menyimpan perubahan...', 'info');
+      const res = await updateSchedule(editingScheduleId, data);
+      if (res.success) {
+        addToast('Jadwal berhasil diperbarui', 'success');
+        setEditingScheduleId(null);
+        setJadwalTeacherId(''); setJadwalDate(''); setJadwalKelas([]); setJadwalLink('');
+        refreshData();
+      } else {
+        addToast('Gagal memperbarui: ' + res.error, 'error');
+      }
     } else {
-      addToast('Gagal membuat jadwal.', 'error');
+      const res = await createSchedule(data);
+      if (res.success) {
+        addToast(`Jadwal untuk ${teacher.name} berhasil dibuat!`, 'success');
+        setJadwalTeacherId(''); setJadwalDate(''); setJadwalKelas([]); setJadwalLink('');
+        refreshData();
+      } else {
+        addToast('Gagal membuat jadwal.', 'error');
+      }
     }
   };
 
@@ -307,19 +319,6 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
       refreshData();
     } else {
       addToast('Gagal menghapus jadwal: ' + res.error, 'error');
-    }
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editingScheduleId) return;
-    addToast('Menyimpan perubahan...', 'info');
-    const res = await updateSchedule(editingScheduleId, editData);
-    if (res.success) {
-      addToast('Jadwal berhasil diperbarui', 'success');
-      setEditingScheduleId(null);
-      refreshData();
-    } else {
-      addToast('Gagal memperbarui: ' + res.error, 'error');
     }
   };
 
@@ -565,53 +564,61 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
 
         
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden lg:col-span-1">
-          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500"></div>
-          <h3 className="font-bold text-slate-800 mb-5 flex items-center text-lg"><FaUserPlus className="text-blue-600 mr-2 text-xl" /> Buat Jadwal Manual</h3>
-          <form onSubmit={handleManualJadwalAdd} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Pilih Guru</label>
-                <select value={jadwalTeacherId} onChange={e=>setJadwalTeacherId(e.target.value)} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500">
-                  <option value="" disabled>Pilih Guru</option>
-                  {users.filter(u => u.role === 'guru').map(g => (
-                    <option key={g.id} value={g.id}>{g.name} ({g.mapel})</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Tanggal (YYYY-MM-DD)</label>
-                <input type="date" value={jadwalDate} onChange={e=>setJadwalDate(e.target.value)} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-3">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Link Vicon (Zoom/Meet) Opsional</label>
-                <input type="text" value={jadwalLink} onChange={e=>setJadwalLink(e.target.value)} placeholder="Contoh: meet.google.com/abc-defg-hij" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Kelas Tujuan (Bisa Pilih &gt; 1)</label>
-                <div className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg max-h-24 overflow-y-auto flex flex-col gap-1">
-                  {uniqueKelas.length === 0 && <span className="text-xs text-slate-400">Belum ada kelas</span>}
-                  {uniqueKelas.map(c => (
-                    <label key={c} className="flex items-center space-x-2 p-1 hover:bg-slate-100 rounded cursor-pointer">
-                      <input type="checkbox" checked={jadwalKelas.includes(c)} onChange={(e) => {
-                        if (e.target.checked) setJadwalKelas([...jadwalKelas, c]);
-                        else setJadwalKelas(jadwalKelas.filter(k => k !== c));
-                      }} className="accent-blue-600 rounded cursor-pointer" />
-                      <span className="text-xs font-medium text-slate-700">{c}</span>
-                    </label>
-                  ))}
+            <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${editingScheduleId ? 'bg-amber-500' : 'bg-blue-500'}`}></div>
+            <h3 className="font-bold text-slate-800 mb-5 flex items-center text-lg"><FaUserPlus className={`${editingScheduleId ? 'text-amber-500' : 'text-blue-600'} mr-2 text-xl`} /> {editingScheduleId ? 'Edit Jadwal Manual' : 'Buat Jadwal Manual'}</h3>
+            <form onSubmit={handleManualJadwalAdd} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Pilih Guru</label>
+                  <select value={jadwalTeacherId} onChange={e=>setJadwalTeacherId(e.target.value)} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500">
+                    <option value="" disabled>Pilih Guru</option>
+                    {users.filter(u => u.role === 'guru').map(g => (
+                      <option key={g.id} value={g.id}>{g.name} ({g.mapel})</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Tanggal (YYYY-MM-DD)</label>
+                  <input type="date" value={jadwalDate} onChange={e=>setJadwalDate(e.target.value)} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
                 </div>
               </div>
-            </div>
+              
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Link Vicon (Zoom/Meet) Opsional</label>
+                  <input type="text" value={jadwalLink} onChange={e=>setJadwalLink(e.target.value)} placeholder="Contoh: meet.google.com/abc-defg-hij" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
+                </div>
+              </div>
 
-            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all mt-2">Buat Jadwal ke Sistem</button>
-          </form>
-        </div>
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Kelas Tujuan (Bisa Pilih &gt; 1)</label>
+                  <div className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg max-h-24 overflow-y-auto flex flex-col gap-1">
+                    {uniqueKelas.length === 0 && <span className="text-xs text-slate-400">Belum ada kelas</span>}
+                    {uniqueKelas.map(c => (
+                      <label key={String(c)} className="flex items-center space-x-2 text-xs text-slate-700 cursor-pointer">
+                        <input type="checkbox" checked={jadwalKelas.includes(String(c))} onChange={(e) => {
+                          if (e.target.checked) setJadwalKelas([...jadwalKelas, String(c)]);
+                          else setJadwalKelas(jadwalKelas.filter(k => k !== String(c)));
+                        }} className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                        <span>{String(c)}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 mt-2">
+                <button type="submit" className={`flex-1 ${editingScheduleId ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-600 hover:bg-blue-700'} text-white font-bold py-3.5 rounded-xl shadow-lg transition-all`}>{editingScheduleId ? 'Simpan Jadwal' : 'Buat Jadwal ke Sistem'}</button>
+                {editingScheduleId && (
+                  <button type="button" onClick={() => {
+                    setEditingScheduleId(null);
+                    setJadwalTeacherId(''); setJadwalDate(''); setJadwalKelas([]); setJadwalLink('');
+                  }} className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3.5 px-6 rounded-xl shadow-sm transition-all">Batal</button>
+                )}
+              </div>
+            </form>
+          </div>
         </div>
 
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-6">
@@ -638,69 +645,41 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
                   {filteredSchedules.length === 0 ? (
                     <tr><td colSpan={6} className="p-4 text-center text-slate-400">Belum ada jadwal.</td></tr>
                   ) : (
-                    filteredSchedules.map((s: any, idx: number) => {
-                      const isEditing = editingScheduleId === s.id;
-                      return (
-                        <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors text-sm text-slate-700">
-                          <td className="p-3 text-center text-slate-400 font-bold">{idx + 1}</td>
-                          <td className="p-3 font-bold text-slate-900">
-                            {isEditing ? (
-                              <input type="text" value={editData.teacherName || ''} onChange={e => setEditData({...editData, teacherName: e.target.value})} className="w-full text-xs p-1.5 border border-slate-300 rounded outline-none" placeholder="Nama Guru" />
-                            ) : (
-                              s.teacherName || '-'
-                            )}
-                          </td>
-                          <td className="p-3 font-medium">
-                            {isEditing ? (
-                              <input type="text" value={editData.mapel || ''} onChange={e => setEditData({...editData, mapel: e.target.value})} className="w-full text-xs p-1.5 border border-slate-300 rounded outline-none" placeholder="Mata Pelajaran" />
-                            ) : (
-                              s.mapel || '-'
-                            )}
-                          </td>
-                          <td className="p-3">
-                            {isEditing ? (
-                              <div className="flex flex-col gap-2">
-                                <input type="date" value={editData.date || ''} onChange={e => setEditData({...editData, date: e.target.value})} className="w-full text-xs p-1.5 border border-slate-300 rounded outline-none" />
-                                <input type="text" value={editData.viconLink || ''} onChange={e => setEditData({...editData, viconLink: e.target.value})} className="w-full text-xs p-1.5 border border-blue-300 rounded outline-none" placeholder="Link Zoom/Meet" />
-                              </div>
-                            ) : (
-                              <>
-                                <span className="font-bold block mb-1">{s.date}</span>
-                                {s.viconLink && (
-                                  <a href={s.viconLink.startsWith('http') ? s.viconLink : `https://${s.viconLink}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-1 px-3 py-1 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 rounded-full text-[10px] font-bold transition-colors uppercase tracking-wide">
-                                    <span>GABUNG VICON</span>
-                                  </a>
-                                )}
-                              </>
-                            )}
-                          </td>
-                          <td className="p-3">
-                            {isEditing ? (
-                              <input type="text" value={editData.kelas || ''} onChange={e => setEditData({...editData, kelas: e.target.value})} className="w-full text-xs p-1.5 border border-slate-300 rounded outline-none" placeholder="Kelas Tujuan" />
-                            ) : (
-                              <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-bold uppercase">{s.kelas || '-'}</span>
-                            )}
-                          </td>
-                          <td className="p-3 text-right">
-                            {isEditing ? (
-                              <div className="flex justify-end gap-1 flex-col">
-                                <button onClick={handleSaveEdit} className="text-xs bg-emerald-600 text-white px-2 py-1.5 rounded font-bold hover:bg-emerald-700 w-full mb-1">Simpan</button>
-                                <button onClick={() => setEditingScheduleId(null)} className="text-xs bg-slate-200 text-slate-700 px-2 py-1.5 rounded font-bold hover:bg-slate-300 w-full">Batal</button>
-                              </div>
-                            ) : (
-                              <div className="flex justify-end gap-1">
-                                <button onClick={() => { setEditingScheduleId(s.id); setEditData({ teacherName: s.teacherName, mapel: s.mapel, date: s.date, viconLink: s.viconLink, kelas: s.kelas }); }} className="text-amber-500 hover:text-amber-700 p-2 hover:bg-amber-50 rounded-lg transition-colors" title="Edit Jadwal">
-                                  <FaEdit />
-                                </button>
-                                <button onClick={() => handleDeleteSchedule(s.id)} className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Hapus Jadwal">
-                                  <FaTrash />
-                                </button>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
+                    filteredSchedules.map((s: any, idx: number) => (
+                      <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors text-sm text-slate-700">
+                        <td className="p-3 text-center text-slate-400 font-bold">{idx + 1}</td>
+                        <td className="p-3 font-bold text-slate-900">{s.teacherName || '-'}</td>
+                        <td className="p-3 font-medium">{s.mapel || '-'}</td>
+                        <td className="p-3">
+                          <span className="font-bold block mb-1">{s.date}</span>
+                          {s.viconLink && (
+                            <a href={s.viconLink.startsWith('http') ? s.viconLink : `https://${s.viconLink}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-1 px-3 py-1 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 rounded-full text-[10px] font-bold transition-colors uppercase tracking-wide">
+                              <span>GABUNG VICON</span>
+                            </a>
+                          )}
+                        </td>
+                        <td className="p-3">
+                          <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-bold uppercase">{s.kelas || '-'}</span>
+                        </td>
+                        <td className="p-3 text-right">
+                          <div className="flex justify-end gap-1">
+                            <button onClick={() => { 
+                              setEditingScheduleId(s.id); 
+                              setJadwalTeacherId(s.teacherId);
+                              setJadwalDate(s.date);
+                              setJadwalKelas(s.kelas ? s.kelas.split(', ') : []);
+                              setJadwalLink(s.viconLink || '');
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }} className="text-amber-500 hover:text-amber-700 p-2 hover:bg-amber-50 rounded-lg transition-colors" title="Edit Jadwal">
+                              <FaEdit />
+                            </button>
+                            <button onClick={() => handleDeleteSchedule(s.id)} className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Hapus Jadwal">
+                              <FaTrash />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
                   )}
                 </tbody>
               </table>
