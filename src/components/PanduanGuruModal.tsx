@@ -28,75 +28,61 @@ export default function PanduanGuruModal({ onClose }: { onClose: () => void }) {
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <h3 className="font-extrabold text-slate-800 text-lg mb-4 flex items-center">
               <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mr-3 text-sm">1</div>
-              Membuat & Membuka Jadwal
+              Memulai Kelas
             </h3>
             <p className="text-slate-600 text-sm leading-relaxed mb-4">
-              Anda dapat mengelola jadwal kelas langsung dari Dashboard Guru atau mengandalkan jadwal dari Admin. Untuk memulai kelas, klik tombol <span className="font-bold text-indigo-600">"Masuk & Siapkan Kelas"</span> pada jadwal yang tersedia. Anda bisa masuk ke kelas kapan saja untuk mempersiapkan materi sebelum siswa masuk!
+              Karena kelas sudah dijadwalkan oleh Admin, Anda tidak perlu lagi membuat jadwal secara manual. Di beranda, Anda cukup klik tombol <span className="font-bold text-emerald-600">"Kelola Kelas Sekarang"</span> untuk jadwal yang aktif hari ini, atau klik <span className="font-bold text-slate-800">"Siapkan Materi"</span> untuk jadwal yang akan datang.
             </p>
           </div>
 
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <h3 className="font-extrabold text-slate-800 text-lg mb-4 flex items-center">
               <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-3 text-sm">2</div>
-              Pintu Ruang Kelas (Vicon)
+              Setting Tugas & Gabung Mengajar
             </h3>
             <p className="text-slate-600 text-sm leading-relaxed mb-4">
-              Admin akan mengatur tautan (link) Zoom atau Google Meet untuk kelas Anda. Anda hanya perlu menekan tombol <span className="font-bold text-blue-600">"GABUNG"</span> untuk masuk ke ruang pertemuan virtual. Siswa juga akan otomatis diarahkan ke link tersebut saat mereka absen masuk kelas.
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h3 className="font-extrabold text-slate-800 text-lg mb-4 flex items-center">
-              <div className="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mr-3 text-sm">3</div>
-              Distribusi LKPD & Tugas
-            </h3>
-            <p className="text-slate-600 text-sm leading-relaxed mb-4">
-              Anda dapat memberikan Lembar Kerja Peserta Didik (LKPD) atau tugas kepada siswa saat sesi berlangsung:
+              Di dalam kelas, Anda hanya perlu melakukan dua hal utama:
             </p>
             <ul className="text-sm text-slate-600 space-y-3 pl-2">
               <li className="flex items-start">
                 <FaClipboardList className="text-amber-500 mt-1 mr-3 shrink-0" />
-                <span>Ketik <b>Instruksi Tugas</b> di kolom teks yang disediakan.</span>
+                <span><b>Setting Tugas/LKPD:</b> Ketik instruksi dan bagikan foto soal (jika ada) ke layar siswa.</span>
               </li>
               <li className="flex items-start">
-                <FaUpload className="text-amber-500 mt-1 mr-3 shrink-0" />
-                <span>Jika perlu, <b>Upload Gambar</b> soal atau materi pendukung (format .jpg / .png).</span>
-              </li>
-              <li className="flex items-start">
-                <FaCheckCircle className="text-emerald-500 mt-1 mr-3 shrink-0" />
-                <span>Klik <b>Simpan & Bagikan ke Siswa</b> agar tugas langsung tampil di layar semua siswa.</span>
+                <FaVideo className="text-blue-500 mt-1 mr-3 shrink-0" />
+                <span><b>Mulai Mengajar:</b> Klik tombol <b>"GABUNG"</b> untuk langsung masuk ke ruang virtual (Google Meet/Zoom) yang link-nya sudah disediakan oleh Admin.</span>
               </li>
             </ul>
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h3 className="font-extrabold text-slate-800 text-lg mb-4 flex items-center">
+              <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mr-3 text-sm">3</div>
+              Jurnal & Dokumentasi PBM
+            </h3>
+            <p className="text-slate-600 text-sm leading-relaxed">
+              Setelah selesai mengajar melalui Google Meet/Zoom, <b>wajib lakukan Screenshot (Tangkapan Layar)</b> sebagai bukti Anda telah mengajar. Kemudian kembali ke sistem ini, gulir ke bagian paling bawah (Jurnal Kelas), dan <b>Upload Screenshot</b> tersebut berserta catatan materi, lalu klik <b>Simpan Jurnal</b>.
+            </p>
           </div>
 
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <h3 className="font-extrabold text-slate-800 text-lg mb-4 flex items-center">
               <div className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mr-3 text-sm">4</div>
-              Monitoring Absensi & Penilaian Tugas
+              Monitoring Absensi & Penilaian
             </h3>
             <p className="text-slate-600 text-sm leading-relaxed mb-4">
-              Di bagian bawah halaman kelas:
+              Sembari atau setelah mengajar, Anda bisa mengecek bagian bawah halaman kelas untuk:
             </p>
             <ul className="text-sm text-slate-600 space-y-3 pl-2">
               <li className="flex items-start">
                 <FaUserCheck className="text-emerald-500 mt-1 mr-3 shrink-0" />
-                <span><b>Daftar Hadir:</b> Anda dapat melihat daftar siswa yang telah menekan tombol absensi secara otomatis.</span>
+                <span><b>Daftar Hadir:</b> Melihat daftar siswa yang telah menekan absensi secara otomatis.</span>
               </li>
               <li className="flex items-start">
                 <FaClipboardList className="text-indigo-500 mt-1 mr-3 shrink-0" />
-                <span><b>Tugas Siswa:</b> Lihat hasil unggahan foto jawaban siswa, kemudian berikan angka <b>Nilai</b> dan klik <b>Nilai (Bintang)</b> untuk menyimpan ke database.</span>
+                <span><b>Tugas Siswa:</b> Melihat hasil foto jawaban siswa dan memberikan nilai.</span>
               </li>
             </ul>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h3 className="font-extrabold text-slate-800 text-lg mb-4 flex items-center">
-              <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mr-3 text-sm">5</div>
-              Jurnal Kelas
-            </h3>
-            <p className="text-slate-600 text-sm leading-relaxed">
-              Setelah kegiatan belajar mengajar selesai, sangat penting untuk mengisi <b>Jurnal Kelas</b> di bagian bawah. Catat materi yang dibahas, kemajuan kelas, atau kendala yang ditemui, lalu klik <b>Simpan Jurnal</b> untuk laporan administrasi Kepala Sekolah.
-            </p>
           </div>
 
         </div>
