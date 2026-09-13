@@ -12,6 +12,7 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
   const [name, setName] = useState('');
   const [role, setRole] = useState('siswa');
   const [spesifik, setSpesifik] = useState('');
+  const [activeTab, setActiveTab] = useState<'akun' | 'jadwal'>('akun');
   const [guruKelas, setGuruKelas] = useState<string[]>([]);
   
   // State untuk buat jadwal manual
@@ -303,8 +304,25 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
         </div>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
+      
+      <div className="flex bg-white rounded-xl shadow-sm p-1 border border-slate-200 mb-6">
+        <button 
+          onClick={() => setActiveTab('akun')}
+          className={`flex-1 py-3 text-sm font-bold rounded-lg transition-colors ${activeTab === 'akun' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
+        >
+          Manajemen Akun
+        </button>
+        <button 
+          onClick={() => setActiveTab('jadwal')}
+          className={`flex-1 py-3 text-sm font-bold rounded-lg transition-colors ${activeTab === 'jadwal' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
+        >
+          Manajemen Jadwal Khusus
+        </button>
+      </div>
+      {activeTab === 'akun' && (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
           <div>
             <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500"></div>
             <h3 className="font-bold text-slate-800 mb-5 flex items-center text-lg"><FaFileExcel className="text-emerald-600 mr-2 text-xl" /> Import / Export User</h3>
@@ -323,26 +341,8 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
-          <div>
-            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500"></div>
-            <h3 className="font-bold text-slate-800 mb-5 flex items-center text-lg"><FaFileExcel className="text-amber-500 mr-2 text-xl" /> Import Jadwal Massal</h3>
-            <p className="text-xs text-slate-500 font-medium mb-4">Atur Jadwal dan tautkan link Zoom/Meet secara massal menggunakan Excel. Praktis untuk admin.</p>
-          </div>
-          <div className="space-y-4">
-            <button onClick={downloadScheduleTemplate} className="w-full bg-amber-50 text-amber-700 hover:bg-amber-100 font-bold py-3.5 px-4 rounded-xl border border-amber-200 transition-all flex items-center justify-center">
-              <FaDownload className="mr-2" /> 1. Unduh Template Jadwal
-            </button>
-            <div className="relative">
-              <input type="file" id="excel-schedule-file" accept=".xlsx, .xls" className="hidden" onChange={importScheduleExcel} />
-              <button onClick={() => document.getElementById('excel-schedule-file')?.click()} className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center">
-                <FaUpload className="mr-2" /> 2. Import Jadwal & Link
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden lg:col-span-1">
+        
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden lg:col-span-1">
           <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-indigo-500"></div>
           <h3 className="font-bold text-slate-800 mb-5 flex items-center text-lg"><FaUserPlus className="text-indigo-600 mr-2 text-xl" /> Input Data Manual</h3>
           <form onSubmit={handleManualAdd} className="space-y-4">
@@ -405,57 +405,9 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
           </form>
         </div>
         
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden lg:col-span-1">
-          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500"></div>
-          <h3 className="font-bold text-slate-800 mb-5 flex items-center text-lg"><FaUserPlus className="text-blue-600 mr-2 text-xl" /> Buat Jadwal Manual</h3>
-          <form onSubmit={handleManualJadwalAdd} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Pilih Guru</label>
-                <select value={jadwalTeacherId} onChange={e=>setJadwalTeacherId(e.target.value)} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500">
-                  <option value="" disabled>Pilih Guru</option>
-                  {users.filter(u => u.role === 'guru').map(g => (
-                    <option key={g.id} value={g.id}>{g.name} ({g.mapel})</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Tanggal (YYYY-MM-DD)</label>
-                <input type="date" value={jadwalDate} onChange={e=>setJadwalDate(e.target.value)} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-3">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Link Vicon (Zoom/Meet) Opsional</label>
-                <input type="text" value={jadwalLink} onChange={e=>setJadwalLink(e.target.value)} placeholder="Contoh: meet.google.com/abc-defg-hij" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Kelas Tujuan (Bisa Pilih &gt; 1)</label>
-                <div className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg max-h-24 overflow-y-auto flex flex-col gap-1">
-                  {uniqueKelas.length === 0 && <span className="text-xs text-slate-400">Belum ada kelas</span>}
-                  {uniqueKelas.map(c => (
-                    <label key={c} className="flex items-center space-x-2 p-1 hover:bg-slate-100 rounded cursor-pointer">
-                      <input type="checkbox" checked={jadwalKelas.includes(c)} onChange={(e) => {
-                        if (e.target.checked) setJadwalKelas([...jadwalKelas, c]);
-                        else setJadwalKelas(jadwalKelas.filter(k => k !== c));
-                      }} className="accent-blue-600 rounded cursor-pointer" />
-                      <span className="text-xs font-medium text-slate-700">{c}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all mt-2">Buat Jadwal ke Sistem</button>
-          </form>
-        </div>
-      </div>
-      
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-6">
+        
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-6">
         <div className="p-5 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
             <h3 className="font-extrabold text-slate-800 text-lg">Direktori Pengguna Aktif</h3>
@@ -552,6 +504,82 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
           </table>
         </div>
       </div>
+        </>
+      )}
+
+      {activeTab === 'jadwal' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
+          <div>
+            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500"></div>
+            <h3 className="font-bold text-slate-800 mb-5 flex items-center text-lg"><FaFileExcel className="text-amber-500 mr-2 text-xl" /> Import Jadwal Massal</h3>
+            <p className="text-xs text-slate-500 font-medium mb-4">Atur Jadwal dan tautkan link Zoom/Meet secara massal menggunakan Excel. Praktis untuk admin.</p>
+          </div>
+          <div className="space-y-4">
+            <button onClick={downloadScheduleTemplate} className="w-full bg-amber-50 text-amber-700 hover:bg-amber-100 font-bold py-3.5 px-4 rounded-xl border border-amber-200 transition-all flex items-center justify-center">
+              <FaDownload className="mr-2" /> 1. Unduh Template Jadwal
+            </button>
+            <div className="relative">
+              <input type="file" id="excel-schedule-file" accept=".xlsx, .xls" className="hidden" onChange={importScheduleExcel} />
+              <button onClick={() => document.getElementById('excel-schedule-file')?.click()} className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center">
+                <FaUpload className="mr-2" /> 2. Import Jadwal & Link
+              </button>
+            </div>
+          </div>
+        </div>
+
+        
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden lg:col-span-1">
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500"></div>
+          <h3 className="font-bold text-slate-800 mb-5 flex items-center text-lg"><FaUserPlus className="text-blue-600 mr-2 text-xl" /> Buat Jadwal Manual</h3>
+          <form onSubmit={handleManualJadwalAdd} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Pilih Guru</label>
+                <select value={jadwalTeacherId} onChange={e=>setJadwalTeacherId(e.target.value)} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500">
+                  <option value="" disabled>Pilih Guru</option>
+                  {users.filter(u => u.role === 'guru').map(g => (
+                    <option key={g.id} value={g.id}>{g.name} ({g.mapel})</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Tanggal (YYYY-MM-DD)</label>
+                <input type="date" value={jadwalDate} onChange={e=>setJadwalDate(e.target.value)} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Link Vicon (Zoom/Meet) Opsional</label>
+                <input type="text" value={jadwalLink} onChange={e=>setJadwalLink(e.target.value)} placeholder="Contoh: meet.google.com/abc-defg-hij" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Kelas Tujuan (Bisa Pilih &gt; 1)</label>
+                <div className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg max-h-24 overflow-y-auto flex flex-col gap-1">
+                  {uniqueKelas.length === 0 && <span className="text-xs text-slate-400">Belum ada kelas</span>}
+                  {uniqueKelas.map(c => (
+                    <label key={c} className="flex items-center space-x-2 p-1 hover:bg-slate-100 rounded cursor-pointer">
+                      <input type="checkbox" checked={jadwalKelas.includes(c)} onChange={(e) => {
+                        if (e.target.checked) setJadwalKelas([...jadwalKelas, c]);
+                        else setJadwalKelas(jadwalKelas.filter(k => k !== c));
+                      }} className="accent-blue-600 rounded cursor-pointer" />
+                      <span className="text-xs font-medium text-slate-700">{c}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all mt-2">Buat Jadwal ke Sistem</button>
+          </form>
+        </div>
+      
+        </div>
+      )}
     </div>
   );
 }
