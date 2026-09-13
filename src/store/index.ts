@@ -21,14 +21,34 @@ interface AppState {
   setSystemTime: (date: string, time: string) => void;
 }
 
+const getWitaTime = () => {
+  try {
+    const formatted = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Makassar',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).format(new Date());
+    const [date, time] = formatted.split(', ');
+    return { date, time: time.replace('24:', '00:') };
+  } catch (e) {
+    return { date: '2026-09-13', time: '08:00' };
+  }
+};
+
+const initialWita = getWitaTime();
+
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       currentUser: null,
       currentView: 'login',
       activeScheduleId: null,
-      systemDate: '2026-09-14',
-      systemTime: '08:00',
+      systemDate: initialWita.date,
+      systemTime: initialWita.time,
       login: (user) => set({ currentUser: user, currentView: 'dashboard' }),
       logout: () => set({ currentUser: null, currentView: 'login', activeScheduleId: null }),
       setView: (view, data) => set((state) => ({ 
@@ -39,6 +59,11 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'skpd-storage',
+      partialize: (state) => ({ 
+        currentUser: state.currentUser, 
+        currentView: state.currentView, 
+        activeScheduleId: state.activeScheduleId 
+      }),
     }
   )
 );

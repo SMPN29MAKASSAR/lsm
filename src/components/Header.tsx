@@ -30,7 +30,7 @@ export default function Header() {
           <div className="hidden lg:flex items-center bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg border border-amber-200 shadow-sm" title="Ubah tanggal dan waktu untuk menguji akses jadwal">
             <FaClock className="mr-2 text-amber-500" />
             <div className="flex flex-col">
-              <span className="text-[9px] font-bold uppercase leading-none mb-1">Simulasi Sistem</span>
+              <span className="text-[9px] font-bold uppercase leading-none mb-1 text-amber-600">Waktu Aktif (Dapat Diubah)</span>
               <div className="flex space-x-1 items-center">
                 <input 
                   type="date" 
