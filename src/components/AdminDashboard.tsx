@@ -18,6 +18,8 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
   // State untuk buat jadwal manual
   const [jadwalTeacherId, setJadwalTeacherId] = useState('');
   const [jadwalDate, setJadwalDate] = useState('');
+  const [jadwalStartTime, setJadwalStartTime] = useState('');
+  const [jadwalEndTime, setJadwalEndTime] = useState('');
   const [jadwalKelas, setJadwalKelas] = useState<string[]>([]);
   const [jadwalLink, setJadwalLink] = useState('');
 
@@ -67,6 +69,8 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
       mapel: teacher.mapel || '',
       kelas: jadwalKelas.join(', '),
       date: jadwalDate,
+      startTime: jadwalStartTime || null,
+      endTime: jadwalEndTime || null,
       viconLink: formattedLink || null
     };
 
@@ -77,6 +81,7 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
         addToast('Jadwal berhasil diperbarui', 'success');
         setEditingScheduleId(null);
         setJadwalTeacherId(''); setJadwalDate(''); setJadwalKelas([]); setJadwalLink('');
+        setJadwalStartTime(''); setJadwalEndTime('');
         refreshData();
       } else {
         addToast('Gagal memperbarui: ' + res.error, 'error');
@@ -86,6 +91,7 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
       if (res.success) {
         addToast(`Jadwal untuk ${teacher.name} berhasil dibuat!`, 'success');
         setJadwalTeacherId(''); setJadwalDate(''); setJadwalKelas([]); setJadwalLink('');
+        setJadwalStartTime(''); setJadwalEndTime('');
         refreshData();
       } else {
         addToast('Gagal membuat jadwal.', 'error');
@@ -590,6 +596,17 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
                 </div>
               </div>
               
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Jam Mulai</label>
+                  <input type="time" value={jadwalStartTime} onChange={e=>setJadwalStartTime(e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Jam Selesai</label>
+                  <input type="time" value={jadwalEndTime} onChange={e=>setJadwalEndTime(e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
+                </div>
+              </div>
+              
               <div className="grid grid-cols-1 gap-3">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Link Vicon (Zoom/Meet) Opsional</label>
@@ -621,6 +638,7 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
                   <button type="button" onClick={() => {
                     setEditingScheduleId(null);
                     setJadwalTeacherId(''); setJadwalDate(''); setJadwalKelas([]); setJadwalLink('');
+                    setJadwalStartTime(''); setJadwalEndTime('');
                   }} className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3.5 px-6 rounded-xl shadow-sm transition-all">Batal</button>
                 )}
               </div>
@@ -654,13 +672,14 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
                     <th className="p-3 font-extrabold">Nama Guru</th>
                     <th className="p-3 font-extrabold">Mapel</th>
                     <th className="p-3 font-extrabold">Jadwal (Tanggal)</th>
+                    <th className="p-3 font-extrabold">Waktu</th>
                     <th className="p-3 font-extrabold">Kelas Tujuan</th>
                     <th className="p-3 font-extrabold text-right">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredSchedules.length === 0 ? (
-                    <tr><td colSpan={6} className="p-4 text-center text-slate-400">Belum ada jadwal.</td></tr>
+                    <tr><td colSpan={7} className="p-4 text-center text-slate-400">Belum ada jadwal.</td></tr>
                   ) : (
                     filteredSchedules.map((s: any, idx: number) => (
                       <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors text-sm text-slate-700">
@@ -672,10 +691,15 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
                             {new Date(s.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                           </span>
                           {s.viconLink && (
-                            <a href={s.viconLink.startsWith('http') ? s.viconLink : `https://${s.viconLink}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-1 px-3 py-1 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 rounded-full text-[10px] font-bold transition-colors uppercase tracking-wide">
+                            <a href={s.viconLink.startsWith('http') ? s.viconLink : `https://${s.viconLink}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-1 px-3 py-1 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 rounded-full text-[10px] font-bold transition-colors uppercase tracking-wide mt-1">
                               <span>GABUNG VICON</span>
                             </a>
                           )}
+                        </td>
+                        <td className="p-3">
+                          <span className="font-bold block text-slate-600">
+                            {s.startTime && s.endTime ? `${s.startTime} - ${s.endTime}` : (s.startTime || s.endTime || '-')}
+                          </span>
                         </td>
                         <td className="p-3">
                           <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-bold uppercase">{s.kelas || '-'}</span>
@@ -686,6 +710,8 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
                               setEditingScheduleId(s.id); 
                               setJadwalTeacherId(s.teacherId);
                               setJadwalDate(s.date);
+                              setJadwalStartTime(s.startTime || '');
+                              setJadwalEndTime(s.endTime || '');
                               setJadwalKelas(s.kelas ? s.kelas.split(', ') : []);
                               setJadwalLink(s.viconLink || '');
                               window.scrollTo({ top: 0, behavior: 'smooth' });

@@ -25,6 +25,8 @@ model Schedule {
   mapel           String
   kelas           String
   date            String   // Format YYYY-MM-DD
+  startTime       String?  // Format HH:MM
+  endTime         String?  // Format HH:MM
   viconLink       String?
   taskInstruction String?
   lkpdFileName    String?
