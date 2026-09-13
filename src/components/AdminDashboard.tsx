@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAppStore } from '@/store';
-import { createUser, createUsers, deleteUser, deleteUsers, createSchedules } from '@/app/actions';
+import { createUser, createUsers, deleteUser, deleteUsers, createSchedules, createSchedule } from '@/app/actions';
 import { FaDatabase, FaFileExcel, FaUserPlus, FaDownload, FaUpload, FaTrash } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 
@@ -13,6 +13,12 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
   const [role, setRole] = useState('siswa');
   const [spesifik, setSpesifik] = useState('');
   const [guruKelas, setGuruKelas] = useState<string[]>([]);
+  
+  // State untuk buat jadwal manual
+  const [jadwalTeacherId, setJadwalTeacherId] = useState('');
+  const [jadwalDate, setJadwalDate] = useState('');
+  const [jadwalKelas, setJadwalKelas] = useState<string[]>([]);
+  const [jadwalLink, setJadwalLink] = useState('');
 
   const [filterText, setFilterText] = useState('');
   const [filterRole, setFilterRole] = useState('');
@@ -35,6 +41,39 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
     .sort((a, b) => a.id.localeCompare(b.id));
 
   const [isEditing, setIsEditing] = useState(false);
+
+  const handleManualJadwalAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!jadwalTeacherId || !jadwalDate || jadwalKelas.length === 0) {
+      addToast('Pastikan Guru, Tanggal, dan Minimal 1 Kelas telah dipilih.', 'error');
+      return;
+    }
+    const teacher = users.find(u => u.id === jadwalTeacherId);
+    if (!teacher) return;
+    
+    let formattedLink = jadwalLink.trim();
+    if (formattedLink && !formattedLink.startsWith('http')) {
+      formattedLink = 'https://' + formattedLink;
+    }
+
+    const data = {
+      teacherId: teacher.id,
+      teacherName: teacher.name,
+      mapel: teacher.mapel || '',
+      kelas: jadwalKelas.join(', '),
+      date: jadwalDate,
+      viconLink: formattedLink || null
+    };
+
+    const res = await createSchedule(data);
+    if (res.success) {
+      addToast(`Jadwal untuk ${teacher.name} berhasil dibuat!`, 'success');
+      setJadwalTeacherId(''); setJadwalDate(''); setJadwalKelas([]); setJadwalLink('');
+      refreshData();
+    } else {
+      addToast('Gagal membuat jadwal.', 'error');
+    }
+  };
 
   const handleManualAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -264,7 +303,7 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
         </div>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
           <div>
             <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500"></div>
@@ -363,6 +402,55 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
             {isEditing && (
               <button type="button" onClick={() => { setIsEditing(false); setId(''); setName(''); setSpesifik(''); setGuruKelas([]); }} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition-all mt-2">Batal Edit</button>
             )}
+          </form>
+        </div>
+        
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden lg:col-span-1">
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500"></div>
+          <h3 className="font-bold text-slate-800 mb-5 flex items-center text-lg"><FaUserPlus className="text-blue-600 mr-2 text-xl" /> Buat Jadwal Manual</h3>
+          <form onSubmit={handleManualJadwalAdd} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Pilih Guru</label>
+                <select value={jadwalTeacherId} onChange={e=>setJadwalTeacherId(e.target.value)} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500">
+                  <option value="" disabled>Pilih Guru</option>
+                  {users.filter(u => u.role === 'guru').map(g => (
+                    <option key={g.id} value={g.id}>{g.name} ({g.mapel})</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Tanggal (YYYY-MM-DD)</label>
+                <input type="date" value={jadwalDate} onChange={e=>setJadwalDate(e.target.value)} required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Link Vicon (Zoom/Meet) Opsional</label>
+                <input type="text" value={jadwalLink} onChange={e=>setJadwalLink(e.target.value)} placeholder="Contoh: meet.google.com/abc-defg-hij" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Kelas Tujuan (Bisa Pilih &gt; 1)</label>
+                <div className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg max-h-24 overflow-y-auto flex flex-col gap-1">
+                  {uniqueKelas.length === 0 && <span className="text-xs text-slate-400">Belum ada kelas</span>}
+                  {uniqueKelas.map(c => (
+                    <label key={c} className="flex items-center space-x-2 p-1 hover:bg-slate-100 rounded cursor-pointer">
+                      <input type="checkbox" checked={jadwalKelas.includes(c)} onChange={(e) => {
+                        if (e.target.checked) setJadwalKelas([...jadwalKelas, c]);
+                        else setJadwalKelas(jadwalKelas.filter(k => k !== c));
+                      }} className="accent-blue-600 rounded cursor-pointer" />
+                      <span className="text-xs font-medium text-slate-700">{c}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all mt-2">Buat Jadwal ke Sistem</button>
           </form>
         </div>
       </div>
