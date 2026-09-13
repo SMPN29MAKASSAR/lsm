@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAppStore } from '@/store';
-import { createUser, deleteUser } from '@/app/actions';
+import { createUser, createUsers, deleteUser } from '@/app/actions';
 import { FaDatabase, FaFileExcel, FaUserPlus, FaDownload, FaUpload, FaTrash } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 
@@ -56,35 +56,49 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
       try {
         addToast("Memproses Sinkronisasi Excel ke Cloud...", "info");
         const data = evt.target?.result;
-        const workbook = XLSX.read(data, {type: 'binary'});
+        const workbook = XLSX.read(data, {type: 'array'});
         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonArray = XLSX.utils.sheet_to_json(worksheet) as any[];
         
-        if(jsonArray.length === 0) throw new Error("Kosong");
+        if(jsonArray.length === 0) throw new Error("File Kosong");
         
-        let count = 0;
+        const usersToCreate = [];
         for(let row of jsonArray) {
-          const id = row['ID (NISN/NIP)'] || row['ID_PENGGUNA'];
-          const name = row['Nama Lengkap'] || row['NAMA_LENGKAP'];
+          const id = row['ID (NISN/NIP)'] || row['ID_PENGGUNA'] || row['ID (NISN/NIP)\r'] || row['NISN / NIP'];
+          const name = row['Nama Lengkap'] || row['NAMA_LENGKAP'] || row['Nama Lengkap\r'];
+          const role = row['Peran'] || row['PERAN'] || 'siswa';
+          const kelas = row['Kelas'] || row['KELAS'] || '';
+          const mapel = row['Mata Pelajaran'] || row['MATA_PELAJARAN'] || '';
+          
           if(id && name) {
-            await createUser({
+            usersToCreate.push({
               id: String(id).trim(),
               name: String(name).trim(),
-              role: String(row['Peran'] || row['PERAN'] || 'siswa').toLowerCase().trim(),
-              kelas: String(row['Kelas'] || row['KELAS'] || '').trim(),
-              mapel: String(row['Mata Pelajaran'] || row['MATA_PELAJARAN'] || '').trim()
+              role: String(role).toLowerCase().trim(),
+              kelas: String(kelas).trim(),
+              mapel: String(mapel).trim()
             });
-            count++;
           }
         }
-        addToast(`${count} data pengguna berhasil tersimpan ke Database Cloud!`, "success");
-        refreshData();
-        e.target.value = '';
-      } catch(err) {
-        addToast("Gagal membaca Excel. Pastikan format sesuai Template.", "error");
+        
+        if (usersToCreate.length === 0) {
+          throw new Error("Tidak ada data valid dengan ID dan Nama.");
+        }
+        
+        const res = await createUsers(usersToCreate);
+        if (res.success) {
+          addToast(`${usersToCreate.length} data pengguna berhasil tersimpan ke Database Cloud!`, "success");
+          refreshData();
+        } else {
+          throw new Error(res.error || "Gagal menyimpan ke database");
+        }
+      } catch (e: any) {
+        addToast("Gagal memproses Excel: " + e.message, "error");
       }
+      // reset input
+      e.target.value = '';
     };
-    reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
   };
 
   const handleDelete = async (userId: string, userName: string) => {

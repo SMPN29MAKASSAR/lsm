@@ -31,6 +31,25 @@ export async function createUser(data: { id: string; name: string; role: string;
   }
 }
 
+export async function createUsers(usersData: { id: string; name: string; role: string; kelas?: string; mapel?: string }[]) {
+  try {
+    // We can use a transaction for safety, or just loop
+    await prisma.$transaction(
+      usersData.map((data) =>
+        prisma.user.upsert({
+          where: { id: data.id },
+          update: data,
+          create: data,
+        })
+      )
+    );
+    revalidatePath('/');
+    return { success: true, count: usersData.length };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
 export async function deleteUser(id: string) {
   try {
     await prisma.user.delete({ where: { id } });
