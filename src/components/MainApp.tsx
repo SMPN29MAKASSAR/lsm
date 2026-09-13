@@ -107,7 +107,7 @@ export default function MainApp() {
         {!currentUser && <Login users={users} addToast={addToast} />}
         
         {currentUser && currentView === 'dashboard' && currentUser.role === 'admin' && (
-          <AdminDashboard users={users} addToast={addToast} refreshData={refreshData} />
+          <AdminDashboard users={users} schedules={schedules} addToast={addToast} refreshData={refreshData} />
         )}
         
         {currentUser && currentView === 'dashboard' && currentUser.role === 'guru' && (

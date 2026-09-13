@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { useAppStore } from '@/store';
-import { createUser, createUsers, deleteUser, deleteUsers, createSchedules, createSchedule } from '@/app/actions';
+import { createUser, createUsers, deleteUser, deleteUsers, createSchedules, createSchedule, deleteSchedule } from '@/app/actions';
 import { FaDatabase, FaFileExcel, FaUserPlus, FaDownload, FaUpload, FaTrash } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 
-export default function AdminDashboard({ users, addToast, refreshData }: { users: any[], addToast: any, refreshData: any }) {
+export default function AdminDashboard({ users, schedules, addToast, refreshData }: { users: any[], schedules?: any[], addToast: any, refreshData: any }) {
   const { currentUser } = useAppStore();
   const [id, setId] = useState('');
   const [name, setName] = useState('');
@@ -24,6 +24,7 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
   const [filterText, setFilterText] = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [filterKelas, setFilterKelas] = useState('');
+  const [filterJadwalDate, setFilterJadwalDate] = useState('');
   
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
