@@ -10,7 +10,6 @@ export default function ActiveSession({ schedules, users, attendances, submissio
   const schedule = schedules.find((s:any) => s.id === activeScheduleId);
   
   const [showModal, setShowModal] = useState(false);
-  const [vicon, setVicon] = useState(schedule?.viconLink || '');
   const [taskText, setTaskText] = useState(schedule?.taskInstruction || '');
   const [jurnal, setJurnal] = useState(journals.find((j:any) => j.id === activeScheduleId)?.text || '');
   
@@ -101,17 +100,8 @@ export default function ActiveSession({ schedules, users, attendances, submissio
   };
 
   // GURU ACTIONS
-  const handleSetLink = async () => {
-    let finalLink = vicon.trim();
-    if (finalLink && !finalLink.startsWith('http://') && !finalLink.startsWith('https://')) {
-      finalLink = 'https://' + finalLink;
-      setVicon(finalLink);
-    }
-    const res = await updateSchedule(schedule.id, { viconLink: finalLink });
-    if(res.success) { addToast("Pintu kelas dibuka!", "success"); refreshData(); }
-  };
-  
-  const handleBroadcastTask = async () => {
+    
+    const handleBroadcastTask = async () => {
     try {
       setIsUploading(true);
       let fileUrl = schedule.lkpdFileUrl;
@@ -314,13 +304,15 @@ export default function ActiveSession({ schedules, users, attendances, submissio
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500"></div>
               <h3 className="font-bold text-slate-800 mb-4 text-lg flex items-center"><FaLink className="text-blue-500 mr-2" /> Pintu Ruang Kelas</h3>
               <div className="flex space-x-2 mb-2">
-                <input type="url" value={vicon} onChange={e=>setVicon(e.target.value)} className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500" placeholder="Paste link Zoom/Gmeet/WA Group..." />
-                <button onClick={handleSetLink} className={`px-5 rounded-xl font-bold shadow-md text-white transition-colors ${vicon === schedule.viconLink && vicon !== '' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-blue-600 hover:bg-blue-700'}`}>
-                  {vicon === schedule.viconLink && vicon !== '' ? <span className="flex items-center"><FaCheck className="mr-1"/> OKE</span> : 'SET'}
-                </button>
+                <input type="url" value={schedule.viconLink || ''} readOnly className="flex-1 p-3 bg-slate-100 border border-slate-200 rounded-xl text-sm outline-none text-slate-500 cursor-not-allowed" placeholder="Belum ada link yang disetel Admin" />
+                {schedule.viconLink && (
+                  <a href={schedule.viconLink.startsWith('http') ? schedule.viconLink : `https://${schedule.viconLink}`} target="_blank" rel="noopener noreferrer" className="px-5 rounded-xl font-bold shadow-md text-white bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-colors">
+                    GABUNG
+                  </a>
+                )}
               </div>
               {schedule.viconLink && (
-                <p className="text-[10px] text-emerald-600 font-bold flex items-center"><FaCheck className="mr-1" /> Link sedang aktif dan sudah bisa diklik oleh Siswa.</p>
+                <p className="text-[10px] text-emerald-600 font-bold flex items-center"><FaCheck className="mr-1" /> Link telah disiapkan oleh Admin.</p>
               )}
             </div>
 
