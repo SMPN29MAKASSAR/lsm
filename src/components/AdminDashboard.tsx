@@ -295,6 +295,23 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
     }
   };
 
+  const handleDeleteSchedule = async (id: string) => {
+    if (!confirm('Anda yakin ingin menghapus jadwal ini?')) return;
+    addToast('Menghapus jadwal...', 'info');
+    const res = await deleteSchedule(id);
+    if (res.success) {
+      addToast('Jadwal dihapus', 'success');
+      refreshData();
+    } else {
+      addToast('Gagal menghapus jadwal: ' + res.error, 'error');
+    }
+  };
+
+  const filteredSchedules = (schedules || []).filter((s: any) => {
+    if (!filterJadwalDate) return true;
+    return s.date.startsWith(filterJadwalDate);
+  }).sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
   return (
     <div className="fade-in space-y-6">
       <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-8 rounded-2xl shadow-xl text-white relative overflow-hidden">
@@ -509,6 +526,7 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
       )}
 
       {activeTab === 'jadwal' && (
+        <>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
           <div>
@@ -578,8 +596,55 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
             <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all mt-2">Buat Jadwal ke Sistem</button>
           </form>
         </div>
-      
         </div>
+
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-6">
+            <div className="p-5 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
+              <h3 className="font-extrabold text-slate-800 text-lg">Daftar Jadwal Khusus</h3>
+              <div className="flex gap-2">
+                <input type="date" value={filterJadwalDate} onChange={e => setFilterJadwalDate(e.target.value)} className="p-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" title="Filter Tanggal" />
+                <button onClick={() => setFilterJadwalDate('')} className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-3 py-2 rounded-lg text-xs transition-colors">Reset</button>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-100 text-slate-500 text-[10px] uppercase tracking-wider">
+                    <th className="p-3 font-extrabold text-center w-12">No</th>
+                    <th className="p-3 font-extrabold">Nama Guru</th>
+                    <th className="p-3 font-extrabold">Mapel</th>
+                    <th className="p-3 font-extrabold">Jadwal (Tanggal)</th>
+                    <th className="p-3 font-extrabold">Kelas Tujuan</th>
+                    <th className="p-3 font-extrabold text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredSchedules.length === 0 ? (
+                    <tr><td colSpan={6} className="p-4 text-center text-slate-400">Belum ada jadwal.</td></tr>
+                  ) : (
+                    filteredSchedules.map((s: any, idx: number) => (
+                      <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors text-sm text-slate-700">
+                        <td className="p-3 text-center text-slate-400 font-bold">{idx + 1}</td>
+                        <td className="p-3 font-bold text-slate-900">{s.teacher?.name || '-'}</td>
+                        <td className="p-3 font-medium">{s.teacher?.mapel || '-'}</td>
+                        <td className="p-3">
+                          <span className="font-bold">{s.date}</span>
+                          {s.link && <div className="text-[10px] text-blue-500 truncate max-w-[150px] mt-1" title={s.link}>{s.link}</div>}
+                        </td>
+                        <td className="p-3"><span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold">{s.classes}</span></td>
+                        <td className="p-3 text-right">
+                          <button onClick={() => handleDeleteSchedule(s.id)} className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Hapus Jadwal">
+                            <FaTrash />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
