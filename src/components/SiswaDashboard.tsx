@@ -67,22 +67,56 @@ export default function SiswaDashboard({ schedules }: { schedules: any[] }) {
               </div>
               <div className={`space-y-4 pl-3 md:pl-4 border-l-2 ${isToday ? 'border-indigo-500' : 'border-slate-200'}`}>
                 {grouped[date].map(s => {
+                  let stateLabel = 'TERJADWAL';
+                  let stateColor = 'bg-blue-100 text-blue-600 border-blue-200';
+                  let isOngoing = false;
+                  let isCompleted = false;
+
+                  if (isToday && s.startTime && s.endTime) {
+                    const [sh, sm] = s.startTime.split(':').map(Number);
+                    const [eh, em] = s.endTime.split(':').map(Number);
+                    const startMins = sh * 60 + sm;
+                    const endMins = eh * 60 + em;
+
+                    if (currentMins >= startMins && currentMins <= endMins) {
+                      isOngoing = true;
+                      stateLabel = 'SEDANG BERLANGSUNG';
+                      stateColor = 'bg-emerald-100 text-emerald-700 border-emerald-300 ring-1 ring-emerald-500 shadow-emerald-500/30';
+                    } else if (currentMins > endMins) {
+                      isCompleted = true;
+                      stateLabel = 'TELAH SELESAI';
+                      stateColor = 'bg-slate-100 text-slate-500 border-slate-200';
+                    } else {
+                      stateLabel = 'TERJADWAL HARI INI';
+                      stateColor = 'bg-indigo-50 text-indigo-500 border-indigo-200';
+                    }
+                  } else if (!isToday) {
+                    if (date < systemDate) {
+                       stateLabel = 'TELAH BERLALU';
+                       stateColor = 'bg-slate-100 text-slate-500 border-slate-200 opacity-70';
+                    }
+                  }
+
                   const canEnter = isToday && timeOpen;
                   const lockReason = !isToday ? 'Beda Hari' : (!timeOpen ? 'Jam Tutup' : '');
 
                   return (
-                    <div key={s.id} className={`bg-white border ${canEnter ? 'border-indigo-300 ring-1 ring-indigo-500 shadow-md' : 'border-slate-200 shadow-sm'} rounded-2xl p-5 md:p-6 flex flex-col md:flex-row justify-between items-center ${!canEnter ? 'opacity-70 bg-slate-50 grayscale-[20%]' : ''}`}>
-                      <div className="flex items-center space-x-4 mb-4 md:mb-0 w-full md:w-auto">
-                        <div className={`w-14 h-14 rounded-2xl ${canEnter ? 'bg-gradient-to-br from-indigo-500 to-blue-600 text-white' : 'bg-slate-200 text-slate-400'} flex items-center justify-center text-2xl shadow-inner shrink-0`}><FaBookOpen /></div>
+                    <div key={s.id} className={`bg-white border ${canEnter && isOngoing ? 'border-emerald-300 ring-1 ring-emerald-500 shadow-md' : canEnter ? 'border-indigo-300 shadow-sm' : 'border-slate-200 shadow-sm'} rounded-2xl p-5 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center relative ${!canEnter ? 'opacity-70 bg-slate-50 grayscale-[20%]' : ''}`}>
+                      <div className={`absolute top-0 right-4 -mt-3 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border ${stateColor}`}>
+                        {stateLabel}
+                      </div>
+                      <div className="flex items-center space-x-4 mb-4 md:mb-0 w-full md:w-auto mt-2 md:mt-0">
+                        <div className={`w-14 h-14 rounded-2xl ${canEnter && isOngoing ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 text-white' : canEnter ? 'bg-gradient-to-br from-indigo-500 to-blue-600 text-white' : 'bg-slate-200 text-slate-400'} flex items-center justify-center text-2xl shadow-inner shrink-0`}><FaBookOpen /></div>
                         <div>
                           <h4 className="font-extrabold text-xl text-slate-800">{s.mapel}</h4>
                           <p className="text-sm font-medium text-slate-500 flex items-center"><FaUserTie className="mr-1" /> {s.teacherName}</p>
+                          {s.startTime && s.endTime && <p className="text-xs font-bold text-slate-400 mt-1"><FaClock className="inline mr-1"/> {s.startTime} - {s.endTime} WITA</p>}
                         </div>
                       </div>
                       <div className="w-full md:w-auto text-right">
                         {canEnter ? (
-                          <button onClick={() => setView('active_session', {scheduleId: s.id})} className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-indigo-500/30 text-sm flex justify-center items-center">
-                            Masuk Kelas <FaArrowRight className="ml-2" />
+                          <button onClick={() => setView('active_session', {scheduleId: s.id})} className={`w-full md:w-auto text-white font-bold py-3 px-8 rounded-xl shadow-lg text-sm flex justify-center items-center ${isOngoing ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/30' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/30'}`}>
+                            {isOngoing ? 'Masuk Kelas Sekarang' : 'Masuk Kelas'} <FaArrowRight className="ml-2" />
                           </button>
                         ) : (
                           <button disabled className="w-full md:w-auto bg-slate-100 text-slate-400 font-bold py-3 px-6 rounded-xl text-sm border flex justify-center items-center"><FaLock className="mr-2" /> Terkunci ({lockReason})</button>
