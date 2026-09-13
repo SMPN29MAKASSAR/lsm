@@ -13,6 +13,24 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
   const [role, setRole] = useState('siswa');
   const [spesifik, setSpesifik] = useState('');
 
+  const [filterText, setFilterText] = useState('');
+  const [filterRole, setFilterRole] = useState('');
+  const [filterKelas, setFilterKelas] = useState('');
+
+  const uniqueKelas = Array.from(new Set(users.filter(u => u.kelas).map(u => u.kelas))).sort();
+
+  const filteredUsers = users
+    .filter(u => {
+      if (filterRole && u.role !== filterRole) return false;
+      if (filterKelas && u.kelas !== filterKelas) return false;
+      if (filterText) {
+        const search = filterText.toLowerCase();
+        return u.name.toLowerCase().includes(search) || u.id.toLowerCase().includes(search);
+      }
+      return true;
+    })
+    .sort((a, b) => a.id.localeCompare(b.id));
+
   const handleManualAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     const data = {
@@ -186,15 +204,32 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
       </div>
       
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-6">
-        <div className="p-5 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+        <div className="p-5 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
           <h3 className="font-extrabold text-slate-800 text-lg">Direktori Pengguna Aktif</h3>
-          <span className="text-xs font-bold text-slate-500 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">Total: {users.length}</span>
+          <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+            <input type="text" placeholder="Cari Nama / NIS..." value={filterText} onChange={e => setFilterText(e.target.value)} className="p-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-indigo-500" />
+            <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="p-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-indigo-500 bg-white">
+              <option value="">Semua Peran</option>
+              <option value="siswa">Siswa</option>
+              <option value="guru">Guru</option>
+              <option value="kepsek">Kepala Sekolah</option>
+              <option value="admin">Admin</option>
+            </select>
+            <select value={filterKelas} onChange={e => setFilterKelas(e.target.value)} className="p-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-indigo-500 bg-white">
+              <option value="">Semua Kelas</option>
+              {uniqueKelas.map(k => (
+                <option key={String(k)} value={String(k)}>{String(k)}</option>
+              ))}
+            </select>
+            <span className="text-xs font-bold text-slate-500 bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-sm whitespace-nowrap flex items-center justify-center">Total: {filteredUsers.length}</span>
+          </div>
         </div>
         <div className="overflow-x-auto p-1 max-h-[500px] overflow-y-auto">
           <table className="w-full text-left border-collapse">
-            <thead className="sticky top-0 bg-white">
+            <thead className="sticky top-0 bg-white shadow-sm">
               <tr className="text-[10px] uppercase tracking-wider text-slate-400 border-b-2 border-slate-200">
-                <th className="p-3 font-extrabold">ID (NISN/NIP)</th>
+                <th className="p-3 font-extrabold text-center w-12">No</th>
+                <th className="p-3 font-extrabold">NIS / NIP</th>
                 <th className="p-3 font-extrabold">Nama Lengkap</th>
                 <th className="p-3 font-extrabold">Peran</th>
                 <th className="p-3 font-extrabold">Kelas / Mapel</th>
@@ -202,24 +237,21 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
               </tr>
             </thead>
             <tbody>
-              {users.length === 0 ? (
-                <tr><td colSpan={5} className="p-4 text-center text-slate-400">Database kosong.</td></tr>
+              {filteredUsers.length === 0 ? (
+                <tr><td colSpan={6} className="p-4 text-center text-slate-400">Database kosong atau tidak ditemukan.</td></tr>
               ) : (
-                users.map(u => (
+                filteredUsers.map((u, index) => (
                   <tr key={u.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors text-sm text-slate-700">
+                    <td className="p-3 text-center text-slate-400 font-bold">{index + 1}</td>
                     <td className="p-3 font-bold">{u.id}</td>
-                    <td className="p-3 font-medium">{u.name}</td>
-                    <td className="p-3">
-                      <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${u.role === 'guru' ? 'bg-indigo-100 text-indigo-700' : (u.role === 'siswa' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700')}`}>
-                        {u.role}
-                      </span>
-                    </td>
-                    <td className="p-3 font-medium text-slate-500">{u.kelas || u.mapel || '-'}</td>
+                    <td className="p-3 font-medium text-slate-900">{u.name}</td>
+                    <td className="p-3"><span className={`px-2 py-1 rounded text-xs font-bold ${u.role==='guru'?'bg-indigo-100 text-indigo-700':u.role==='siswa'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700'}`}>{u.role}</span></td>
+                    <td className="p-3">{u.role === 'siswa' ? u.kelas : u.mapel}</td>
                     <td className="p-3 text-right">
-                      {u.id !== currentUser?.id ? (
-                        <button onClick={() => handleDelete(u.id, u.name)} className="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-lg transition-colors"><FaTrash /></button>
-                      ) : (
-                        <span className="text-xs text-slate-400">Anda</span>
+                      {u.id !== currentUser.id && (
+                        <button onClick={() => handleDelete(u.id, u.name)} className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors">
+                          <FaTrash />
+                        </button>
                       )}
                     </td>
                   </tr>
