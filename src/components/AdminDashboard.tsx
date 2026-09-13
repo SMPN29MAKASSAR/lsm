@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAppStore } from '@/store';
-import { createUser, createUsers, deleteUser, deleteUsers } from '@/app/actions';
+import { createUser, createUsers, deleteUser, deleteUsers, createSchedules } from '@/app/actions';
 import { FaDatabase, FaFileExcel, FaUserPlus, FaDownload, FaUpload, FaTrash } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 
@@ -12,6 +12,7 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
   const [name, setName] = useState('');
   const [role, setRole] = useState('siswa');
   const [spesifik, setSpesifik] = useState('');
+  const [guruKelas, setGuruKelas] = useState<string[]>([]);
 
   const [filterText, setFilterText] = useState('');
   const [filterRole, setFilterRole] = useState('');
@@ -33,23 +34,40 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
     })
     .sort((a, b) => a.id.localeCompare(b.id));
 
+  const [isEditing, setIsEditing] = useState(false);
+
   const handleManualAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     const data = {
       id: id.trim(),
       name: name.trim(),
       role,
-      kelas: role === 'siswa' ? spesifik.trim() : '',
+      kelas: role === 'siswa' ? spesifik.trim() : (role === 'guru' ? guruKelas.join(', ') : ''),
       mapel: role === 'guru' ? spesifik.trim() : '',
     };
     const res = await createUser(data);
     if (res.success) {
-      addToast(`Pengguna ${data.name} ditambahkan!`, 'success');
-      setId(''); setName(''); setSpesifik('');
+      addToast(`Pengguna ${data.name} ${isEditing ? 'diperbarui' : 'ditambahkan'}!`, 'success');
+      setId(''); setName(''); setSpesifik(''); setGuruKelas([]); setIsEditing(false);
       refreshData();
     } else {
-      addToast('Gagal menambah pengguna.', 'error');
+      addToast('Gagal menyimpan pengguna.', 'error');
     }
+  };
+
+  const handleEdit = (u: any) => {
+    setId(u.id);
+    setName(u.name);
+    setRole(u.role);
+    if (u.role === 'siswa') setSpesifik(u.kelas || '');
+    else if (u.role === 'guru') {
+      setSpesifik(u.mapel || '');
+      setGuruKelas(u.kelas ? u.kelas.split(', ') : []);
+    }
+    else setSpesifik('');
+    setIsEditing(true);
+    // scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const downloadTemplate = () => {
@@ -121,6 +139,81 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
     reader.readAsArrayBuffer(file);
   };
 
+  const downloadScheduleTemplate = () => {
+    const data = [
+      ["ID Guru (NIP)", "Tanggal (YYYY-MM-DD)", "Kelas Tujuan (Pisahkan Koma)", "Mata Pelajaran", "Link Vicon"],
+      ["NIP001", "2026-09-14", "KELAS 7.1, KELAS 7.2", "Matematika", "https://meet.google.com/abc-defg-hij"],
+      ["NIP002", "2026-09-15", "KELAS 8.1", "Fisika", "https://zoom.us/j/123456789"]
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    ws['!cols'] = [{wch: 15}, {wch: 25}, {wch: 30}, {wch: 20}, {wch: 40}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Format_Jadwal");
+    XLSX.writeFile(wb, "Template_Jadwal_Massal.xlsx");
+    addToast("Template Jadwal diunduh.", "info");
+  };
+
+  const importScheduleExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = async function(evt) {
+      try {
+        addToast("Memproses Jadwal Massal...", "info");
+        const data = evt.target?.result;
+        const workbook = XLSX.read(data, {type: 'array'});
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonArray = XLSX.utils.sheet_to_json(worksheet) as any[];
+        
+        if(jsonArray.length === 0) throw new Error("File Kosong");
+        
+        const schedulesToCreate = [];
+        for(let row of jsonArray) {
+          const teacherId = String(row['ID Guru (NIP)'] || row['ID_GURU'] || '').trim();
+          const date = String(row['Tanggal (YYYY-MM-DD)'] || row['TANGGAL'] || '').trim();
+          const kelas = String(row['Kelas Tujuan (Pisahkan Koma)'] || row['KELAS'] || '').trim();
+          const mapel = String(row['Mata Pelajaran'] || row['MAPEL'] || '').trim();
+          const viconLink = String(row['Link Vicon'] || row['LINK'] || '').trim();
+          
+          if(teacherId && date && kelas) {
+            // we need teacherName, let's find it from existing users
+            const teacher = users.find(u => u.id === teacherId);
+            const teacherName = teacher ? teacher.name : teacherId;
+            let formattedLink = viconLink;
+            if (formattedLink && !formattedLink.startsWith('http')) {
+              formattedLink = 'https://' + formattedLink;
+            }
+
+            schedulesToCreate.push({
+              teacherId,
+              teacherName,
+              date,
+              kelas,
+              mapel: mapel || (teacher ? teacher.mapel : ''),
+              viconLink: formattedLink || null
+            });
+          }
+        }
+        
+        if (schedulesToCreate.length === 0) {
+          throw new Error("Tidak ada data jadwal valid.");
+        }
+        
+        const res = await createSchedules(schedulesToCreate);
+        if (res.success) {
+          addToast(`${schedulesToCreate.length} jadwal massal berhasil tersimpan!`, "success");
+          refreshData(); // ini akan memanggil getSchedules lagi
+        } else {
+          throw new Error(res.error || "Gagal menyimpan jadwal");
+        }
+      } catch (e: any) {
+        addToast("Gagal memproses Excel Jadwal: " + e.message, "error");
+      }
+      e.target.value = '';
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
   const handleDelete = async (userId: string, userName: string) => {
     if(confirm(`Anda akan menghapus data ${userName} dari server. Aksi ini permanen. Yakin?`)) {
       const res = await deleteUser(userId);
@@ -171,25 +264,46 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
-          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500"></div>
-          <h3 className="font-bold text-slate-800 mb-5 flex items-center text-lg"><FaFileExcel className="text-emerald-600 mr-2 text-xl" /> Import / Export Massal</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
+          <div>
+            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500"></div>
+            <h3 className="font-bold text-slate-800 mb-5 flex items-center text-lg"><FaFileExcel className="text-emerald-600 mr-2 text-xl" /> Import / Export User</h3>
+            <p className="text-xs text-slate-500 font-medium mb-4">Unduh format Excel yang disediakan, isi data siswa/guru, lalu import kembali untuk memasukkan ratusan data sekaligus.</p>
+          </div>
           <div className="space-y-4">
-            <p className="text-xs text-slate-500 font-medium">Unduh format Excel yang disediakan, isi data siswa/guru, lalu import kembali untuk memasukkan ratusan data sekaligus.</p>
             <button onClick={downloadTemplate} className="w-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold py-3.5 px-4 rounded-xl border border-emerald-200 transition-all flex items-center justify-center">
-              <FaDownload className="mr-2" /> 1. Unduh Template Excel
+              <FaDownload className="mr-2" /> 1. Unduh Template
             </button>
             <div className="relative">
               <input type="file" id="excel-import-file" accept=".xlsx, .xls" className="hidden" onChange={importExcel} />
               <button onClick={() => document.getElementById('excel-import-file')?.click()} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center">
-                <FaUpload className="mr-2" /> 2. Import Data Excel
+                <FaUpload className="mr-2" /> 2. Import Data User
               </button>
             </div>
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
+          <div>
+            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500"></div>
+            <h3 className="font-bold text-slate-800 mb-5 flex items-center text-lg"><FaFileExcel className="text-amber-500 mr-2 text-xl" /> Import Jadwal Massal</h3>
+            <p className="text-xs text-slate-500 font-medium mb-4">Atur Jadwal dan tautkan link Zoom/Meet secara massal menggunakan Excel. Praktis untuk admin.</p>
+          </div>
+          <div className="space-y-4">
+            <button onClick={downloadScheduleTemplate} className="w-full bg-amber-50 text-amber-700 hover:bg-amber-100 font-bold py-3.5 px-4 rounded-xl border border-amber-200 transition-all flex items-center justify-center">
+              <FaDownload className="mr-2" /> 1. Unduh Template Jadwal
+            </button>
+            <div className="relative">
+              <input type="file" id="excel-schedule-file" accept=".xlsx, .xls" className="hidden" onChange={importScheduleExcel} />
+              <button onClick={() => document.getElementById('excel-schedule-file')?.click()} className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center">
+                <FaUpload className="mr-2" /> 2. Import Jadwal & Link
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden lg:col-span-1">
           <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-indigo-500"></div>
           <h3 className="font-bold text-slate-800 mb-5 flex items-center text-lg"><FaUserPlus className="text-indigo-600 mr-2 text-xl" /> Input Data Manual</h3>
           <form onSubmit={handleManualAdd} className="space-y-4">
@@ -221,14 +335,34 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
                   </>
                 )}
                 {role === 'guru' && (
-                  <>
-                    <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Mata Pelajaran (Mapel)</label>
-                    <input type="text" value={spesifik} onChange={e=>setSpesifik(e.target.value)} required placeholder="Contoh: Fisika" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-indigo-500" />
-                  </>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Mata Pelajaran (Mapel)</label>
+                      <input type="text" value={spesifik} onChange={e=>setSpesifik(e.target.value)} required placeholder="Contoh: Fisika" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-indigo-500" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Kelas Yang Diajar</label>
+                      <div className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg max-h-32 overflow-y-auto flex flex-col gap-1">
+                        {uniqueKelas.length === 0 && <span className="text-xs text-slate-400">Belum ada kelas</span>}
+                        {uniqueKelas.map(c => (
+                          <label key={c} className="flex items-center space-x-2 p-1 hover:bg-slate-100 rounded cursor-pointer">
+                            <input type="checkbox" checked={guruKelas.includes(c)} onChange={(e) => {
+                              if (e.target.checked) setGuruKelas([...guruKelas, c]);
+                              else setGuruKelas(guruKelas.filter(k => k !== c));
+                            }} className="accent-indigo-600 rounded cursor-pointer" />
+                            <span className="text-xs font-medium text-slate-700">{c}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
-            <button type="submit" className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all mt-2">Simpan ke Database</button>
+            <button type="submit" className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all mt-2">{isEditing ? 'Perbarui Data' : 'Simpan ke Database'}</button>
+            {isEditing && (
+              <button type="button" onClick={() => { setIsEditing(false); setId(''); setName(''); setSpesifik(''); setGuruKelas([]); }} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition-all mt-2">Batal Edit</button>
+            )}
           </form>
         </div>
       </div>
@@ -301,15 +435,27 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
                     <td className="p-3 font-bold">{u.id}</td>
                     <td className="p-3 font-medium text-slate-900">{u.name}</td>
                     <td className="p-3"><span className={`px-2 py-1 rounded text-xs font-bold ${u.role==='guru'?'bg-indigo-100 text-indigo-700':u.role==='siswa'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700'}`}>{u.role}</span></td>
-                    <td className="p-3">{u.role === 'siswa' ? u.kelas : u.mapel}</td>
+                    <td className="p-3">
+                      {u.role === 'siswa' ? u.kelas : (u.role === 'guru' ? (
+                        <div>
+                          <span className="font-bold">{u.mapel}</span>
+                          {u.kelas && <div className="text-[10px] text-slate-500 mt-1">{u.kelas}</div>}
+                        </div>
+                      ) : u.mapel)}
+                    </td>
                     <td className="p-3 text-right">
-                      {u.id !== currentUser?.id ? (
-                        <button onClick={() => handleDelete(u.id, u.name)} className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Hapus Pengguna">
-                          <FaTrash />
+                      <div className="flex justify-end gap-1">
+                        <button onClick={() => handleEdit(u)} className="text-indigo-500 hover:text-indigo-700 p-2 hover:bg-indigo-50 rounded-lg transition-colors" title="Edit Pengguna">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         </button>
-                      ) : (
-                        <span className="text-xs text-slate-400 font-bold bg-slate-100 px-2 py-1 rounded">Anda</span>
-                      )}
+                        {u.id !== currentUser?.id ? (
+                          <button onClick={() => handleDelete(u.id, u.name)} className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Hapus Pengguna">
+                            <FaTrash />
+                          </button>
+                        ) : (
+                          <span className="text-xs text-slate-400 font-bold bg-slate-100 px-2 py-1 rounded flex items-center">Anda</span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))

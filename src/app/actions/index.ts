@@ -114,6 +114,18 @@ export async function createSchedule(data: { teacherId: string; teacherName: str
   }
 }
 
+export async function createSchedules(schedulesData: any[]) {
+  try {
+    await prisma.schedule.createMany({
+      data: schedulesData
+    });
+    revalidatePath('/');
+    return { success: true, count: schedulesData.length };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
 export async function updateSchedule(id: string, data: any) {
   try {
     await prisma.schedule.update({ where: { id }, data });
