@@ -27,6 +27,7 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
   const [filterRole, setFilterRole] = useState('');
   const [filterKelas, setFilterKelas] = useState('');
   const [filterJadwalDate, setFilterJadwalDate] = useState('');
+  const [filterJadwalHari, setFilterJadwalHari] = useState('');
   
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -323,8 +324,14 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
   };
 
   const filteredSchedules = (schedules || []).filter((s: any) => {
-    if (!filterJadwalDate) return true;
-    return s.date.startsWith(filterJadwalDate);
+    let pass = true;
+    if (filterJadwalDate && !s.date.startsWith(filterJadwalDate)) pass = false;
+    if (filterJadwalHari) {
+      const d = new Date(s.date);
+      const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      if (dayNames[d.getDay()] !== filterJadwalHari) pass = false;
+    }
+    return pass;
   }).sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   return (
@@ -625,8 +632,18 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
             <div className="p-5 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
               <h3 className="font-extrabold text-slate-800 text-lg">Daftar Jadwal Khusus</h3>
               <div className="flex gap-2">
+                <select value={filterJadwalHari} onChange={e => setFilterJadwalHari(e.target.value)} className="p-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" title="Filter Hari">
+                  <option value="">Semua Hari</option>
+                  <option value="Senin">Senin</option>
+                  <option value="Selasa">Selasa</option>
+                  <option value="Rabu">Rabu</option>
+                  <option value="Kamis">Kamis</option>
+                  <option value="Jumat">Jumat</option>
+                  <option value="Sabtu">Sabtu</option>
+                  <option value="Minggu">Minggu</option>
+                </select>
                 <input type="date" value={filterJadwalDate} onChange={e => setFilterJadwalDate(e.target.value)} className="p-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" title="Filter Tanggal" />
-                <button onClick={() => setFilterJadwalDate('')} className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-3 py-2 rounded-lg text-xs transition-colors">Reset</button>
+                <button onClick={() => { setFilterJadwalDate(''); setFilterJadwalHari(''); }} className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-3 py-2 rounded-lg text-xs transition-colors">Reset</button>
               </div>
             </div>
             <div className="overflow-x-auto">
@@ -651,7 +668,9 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
                         <td className="p-3 font-bold text-slate-900">{s.teacherName || '-'}</td>
                         <td className="p-3 font-medium">{s.mapel || '-'}</td>
                         <td className="p-3">
-                          <span className="font-bold block mb-1">{s.date}</span>
+                          <span className="font-bold block mb-1">
+                            {new Date(s.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                          </span>
                           {s.viconLink && (
                             <a href={s.viconLink.startsWith('http') ? s.viconLink : `https://${s.viconLink}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-1 px-3 py-1 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 rounded-full text-[10px] font-bold transition-colors uppercase tracking-wide">
                               <span>GABUNG VICON</span>
