@@ -9,6 +9,7 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
   
   const [filterText, setFilterText] = useState('');
   const [filterDate, setFilterDate] = useState('');
+  const [filterHari, setFilterHari] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const totalSchedules = schedules.length;
@@ -18,6 +19,11 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
   
   const filteredSchedules = schedules.filter((s:any) => {
     if (filterDate && s.date !== filterDate) return false;
+    if (filterHari) {
+      const d = new Date(s.date);
+      const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      if (days[d.getDay()] !== filterHari) return false;
+    }
     if (!filterText) return true;
     const search = filterText.toLowerCase();
     return s.date.toLowerCase().includes(search) || 
