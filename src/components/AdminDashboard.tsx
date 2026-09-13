@@ -320,7 +320,7 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
   };
 
   const handleDeleteSchedule = async (id: string) => {
-    if (!confirm('Anda yakin ingin menghapus jadwal ini?')) return;
+    if (!confirm('APAKAH ANDA YAKIN?\n\nJika jadwal ini dihapus, seluruh data seperti Absen Siswa, Jurnal Mengajar, dan Tugas Evaluasi pada sesi ini akan ikut TERHAPUS PERMANEN.')) return;
     addToast('Menghapus jadwal...', 'info');
     const res = await deleteSchedule(id);
     if (res.success) {
