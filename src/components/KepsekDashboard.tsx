@@ -8,6 +8,7 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
   const { systemDate } = useAppStore();
   
   const [filterText, setFilterText] = useState('');
+  const [filterDate, setFilterDate] = useState('');
 
   const totalSchedules = schedules.length;
   const openSchedules = schedules.filter((s:any) => s.viconLink && s.viconLink !== '').length;
@@ -15,6 +16,7 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
   const totalTugas = submissions.length;
   
   const filteredSchedules = schedules.filter((s:any) => {
+    if (filterDate && s.date !== filterDate) return false;
     if (!filterText) return true;
     const search = filterText.toLowerCase();
     return s.date.toLowerCase().includes(search) || 
@@ -114,13 +116,18 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                           <div>
                             <FaCheckCircle className="text-emerald-500 mx-auto text-xl mb-1" />
                             {adaJurnal.photoUrls && adaJurnal.photoUrls.length > 0 && (
-                              <div className="flex justify-center gap-1 mt-2">
-                                {adaJurnal.photoUrls.slice(0, 3).map((url: string, i: number) => (
-                                  <img key={i} src={`/api/proxy?url=${encodeURIComponent(url)}`} className="w-16 h-16 md:w-20 md:h-20 rounded object-cover shadow-sm border border-slate-200 hover:scale-150 transition-transform cursor-pointer" alt="Dok" loading="lazy" />
-                                ))}
-                                {adaJurnal.photoUrls.length > 3 && <span className="text-xs font-bold text-slate-500 flex items-center bg-slate-100 px-2 rounded-lg">+{adaJurnal.photoUrls.length - 3}</span>}
-                              </div>
-                            )}
+                                <div className="flex flex-wrap justify-center gap-2 mt-3">
+                                  {adaJurnal.photoUrls.map((url: string, i: number) => {
+                                    const len = adaJurnal.photoUrls.length;
+                                    let imgClass = "w-32 h-32 md:w-40 md:h-40";
+                                    if (len === 2) imgClass = "w-24 h-24 md:w-32 md:h-32";
+                                    else if (len >= 3) imgClass = "w-20 h-20 md:w-28 md:h-28";
+                                    return (
+                                      <img key={i} src={`/api/proxy?url=${encodeURIComponent(url)}`} className={`${imgClass} rounded-xl object-cover shadow border border-slate-200 hover:scale-[1.8] hover:z-50 relative transition-transform cursor-pointer origin-center`} alt="Dok" loading="lazy" />
+                                    );
+                                  })}
+                                </div>
+                              )}
                           </div>
                         ) : <FaMinus className="text-slate-300 mx-auto text-xl" />}
                       </td>
