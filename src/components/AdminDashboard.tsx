@@ -30,10 +30,12 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
   const [filterKelas, setFilterKelas] = useState('');
   const [filterJadwalDate, setFilterJadwalDate] = useState('');
   const [filterJadwalHari, setFilterJadwalHari] = useState('');
+  const [filterJadwalMapel, setFilterJadwalMapel] = useState('');
   
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const uniqueKelas = Array.from(new Set(users.filter(u => u.kelas).map(u => u.kelas))).sort();
+  const uniqueMapelJadwal = Array.from(new Set((schedules || []).filter((s: any) => s.mapel).map((s: any) => s.mapel))).sort();
 
   const filteredUsers = users
     .filter(u => {
@@ -332,6 +334,7 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
   const filteredSchedules = (schedules || []).filter((s: any) => {
     let pass = true;
     if (filterJadwalDate && !s.date.startsWith(filterJadwalDate)) pass = false;
+    if (filterJadwalMapel && s.mapel !== filterJadwalMapel) pass = false;
     if (filterJadwalHari) {
       const d = new Date(s.date);
       const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -650,6 +653,12 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
             <div className="p-5 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
               <h3 className="font-extrabold text-slate-800 text-lg">Daftar Jadwal Khusus</h3>
               <div className="flex gap-2">
+                <select value={filterJadwalMapel} onChange={e => setFilterJadwalMapel(e.target.value)} className="p-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" title="Filter Mapel">
+                  <option value="">Semua Mapel</option>
+                  {uniqueMapelJadwal.map((m: any) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
                 <select value={filterJadwalHari} onChange={e => setFilterJadwalHari(e.target.value)} className="p-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" title="Filter Hari">
                   <option value="">Semua Hari</option>
                   <option value="Senin">Senin</option>
@@ -661,7 +670,7 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
                   <option value="Minggu">Minggu</option>
                 </select>
                 <input type="date" value={filterJadwalDate} onChange={e => setFilterJadwalDate(e.target.value)} className="p-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" title="Filter Tanggal" />
-                <button onClick={() => { setFilterJadwalDate(''); setFilterJadwalHari(''); }} className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-3 py-2 rounded-lg text-xs transition-colors">Reset</button>
+                <button onClick={() => { setFilterJadwalDate(''); setFilterJadwalHari(''); setFilterJadwalMapel(''); }} className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-3 py-2 rounded-lg text-xs transition-colors">Reset</button>
               </div>
             </div>
             <div className="overflow-x-auto">
