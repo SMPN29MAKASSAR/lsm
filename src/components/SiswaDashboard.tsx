@@ -97,8 +97,23 @@ export default function SiswaDashboard({ schedules }: { schedules: any[] }) {
                     }
                   }
 
-                  const canEnter = isToday && timeOpen;
-                  const lockReason = !isToday ? 'Beda Hari' : (!timeOpen ? 'Jam Tutup' : '');
+                  let canEnter = false;
+                  let lockReason = '';
+                  if (!isToday) {
+                    lockReason = date < systemDate ? 'Telah Berlalu' : 'Beda Hari';
+                  } else {
+                    if (s.startTime) {
+                      const [sh, sm] = s.startTime.split(':').map(Number);
+                      const startMins = sh * 60 + sm;
+                      if (currentMins < startMins) {
+                        lockReason = 'Belum Mulai';
+                      } else {
+                        canEnter = true;
+                      }
+                    } else {
+                      canEnter = true;
+                    }
+                  }
 
                   return (
                     <div key={s.id} className={`bg-white border ${canEnter && isOngoing ? 'border-emerald-300 ring-1 ring-emerald-500 shadow-md' : canEnter ? 'border-indigo-300 shadow-sm' : 'border-slate-200 shadow-sm'} rounded-2xl p-5 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center relative ${!canEnter ? 'opacity-70 bg-slate-50 grayscale-[20%]' : ''}`}>
