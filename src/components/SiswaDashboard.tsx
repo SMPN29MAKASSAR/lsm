@@ -1,12 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import { useAppStore } from '@/store';
+import PanduanSiswaModal from './PanduanSiswaModal';
 import { FaUserGraduate, FaExclamationTriangle, FaFolderOpen, FaBookOpen, FaUserTie, FaArrowRight, FaLock } from 'react-icons/fa';
 
 export default function SiswaDashboard({ schedules }: { schedules: any[] }) {
   const { currentUser, setView, systemDate, systemTime } = useAppStore();
   
   if (!currentUser) return null;
+
+  const [showPanduan, setShowPanduan] = useState(false);
 
   const mySchedules = schedules.filter(s => currentUser?.kelas && s.kelas.includes(currentUser.kelas));
   
@@ -24,11 +28,16 @@ export default function SiswaDashboard({ schedules }: { schedules: any[] }) {
 
   return (
     <div className="fade-in space-y-6">
-      <div className="bg-gradient-to-r from-blue-700 to-indigo-800 p-8 rounded-2xl shadow-xl text-white relative overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-700 to-indigo-800 p-8 rounded-2xl shadow-xl text-white relative overflow-hidden flex flex-col md:flex-row justify-between md:items-center">
         <div className="absolute right-0 top-0 opacity-10"><FaUserGraduate className="text-[150px] -mt-8 -mr-8" /></div>
-        <div className="relative z-10">
+        <div className="relative z-10 mb-4 md:mb-0">
           <h2 className="text-3xl font-extrabold tracking-tight">Ruang Belajar Interaktif</h2>
           <p className="text-blue-100 mt-1 font-medium">Siswa: {currentUser.name} | Kelas: <span className="font-bold text-white">{currentUser.kelas}</span></p>
+        </div>
+        <div className="relative z-10">
+          <button onClick={() => setShowPanduan(true)} className="bg-white/20 hover:bg-white/30 text-white border border-white/30 font-bold py-2.5 px-6 rounded-xl text-sm flex items-center transition-colors shadow-sm backdrop-blur-sm">
+            <FaBookOpen className="mr-2 text-lg" /> Buku Panduan
+          </button>
         </div>
       </div>
 
@@ -87,6 +96,8 @@ export default function SiswaDashboard({ schedules }: { schedules: any[] }) {
           )
         })
       )}
+      
+      {showPanduan && <PanduanSiswaModal onClose={() => setShowPanduan(false)} />}
     </div>
   );
 }
