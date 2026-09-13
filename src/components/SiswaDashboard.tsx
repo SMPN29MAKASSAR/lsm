@@ -24,7 +24,7 @@ export default function SiswaDashboard({ schedules }: { schedules: any[] }) {
   
   const [h, m] = systemTime.split(':').map(Number);
   const currentMins = h * 60 + m;
-  const timeOpen = currentMins >= 7 * 60 && currentMins <= 23 * 60 + 59; // 07:00 - 23:59
+  const timeOpen = true; // 24 jam terbuka per request
 
   return (
     <div className="fade-in space-y-6">
