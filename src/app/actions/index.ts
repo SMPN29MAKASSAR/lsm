@@ -78,7 +78,7 @@ export async function seedUsers() {
   const defaults = [
     { id: '123456', role: 'siswa', name: 'Budi Santoso', kelas: 'X MIPA 1', mapel: '' },
     { id: 'GURU001', role: 'guru', name: 'Drs. Akhmad', kelas: '', mapel: 'Matematika' },
-    { id: 'ADMIN', role: 'admin', name: 'Admin Tata Usaha', kelas: '', mapel: '' },
+    { id: 'CHEEQAL01', role: 'admin', name: 'Admin Tata Usaha', kelas: '', mapel: '' },
     { id: 'KEPSEK', role: 'kepsek', name: 'Kepala Sekolah', kelas: '', mapel: '' }
   ];
   try {
