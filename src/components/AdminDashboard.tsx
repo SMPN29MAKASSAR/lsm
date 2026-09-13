@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useAppStore } from '@/store';
@@ -113,11 +113,11 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
 
   const downloadTemplate = () => {
     const data = [
-      ["ID (NISN/NIP)", "Nama Lengkap", "Peran", "Kelas", "Mata Pelajaran"],
+      ["ID (NIS/ID Guru)", "Nama Lengkap", "Peran", "Kelas", "Mata Pelajaran"],
       ["123456", "Budi Santoso", "siswa", "X MIPA 1", ""],
       ["223344", "Aisyah Putri", "siswa", "X IPS 1", ""],
-      ["NIP001", "Drs. Akhmad", "guru", "", "Matematika"],
-      ["NIP002", "Siti Aminah, S.Pd", "guru", "", "Fisika"]
+      ["GURU001", "Drs. Akhmad", "guru", "", "Matematika"],
+      ["GURU002", "Siti Aminah, S.Pd", "guru", "", "Fisika"]
     ];
     const ws = XLSX.utils.aoa_to_sheet(data);
     ws['!cols'] = [{wch: 15}, {wch: 25}, {wch: 10}, {wch: 15}, {wch: 20}];
@@ -143,7 +143,7 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
         
         const usersToCreate = [];
         for(let row of jsonArray) {
-          const id = row['ID (NISN/NIP)'] || row['ID_PENGGUNA'] || row['ID (NISN/NIP)\r'] || row['NISN / NIP'];
+          const id = row['ID (NIS/ID Guru)'] || row['ID_PENGGUNA'] || row['ID (NIS/ID Guru)\r'] || row['NIS / ID Guru'];
           const name = row['Nama Lengkap'] || row['NAMA_LENGKAP'] || row['Nama Lengkap\r'];
           const role = row['Peran'] || row['PERAN'] || 'siswa';
           const kelas = row['Kelas'] || row['KELAS'] || '';
@@ -182,9 +182,9 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
 
   const downloadScheduleTemplate = () => {
     const data = [
-      ["ID Guru (NIP)", "Tanggal (YYYY-MM-DD)", "Kelas Tujuan (Pisahkan Koma)", "Mata Pelajaran", "Link Vicon"],
-      ["NIP001", "2026-09-14", "KELAS 7.1, KELAS 7.2", "Matematika", "https://meet.google.com/abc-defg-hij"],
-      ["NIP002", "2026-09-15", "KELAS 8.1", "Fisika", "https://zoom.us/j/123456789"]
+      ["ID Guru", "Tanggal (YYYY-MM-DD)", "Kelas Tujuan (Pisahkan Koma)", "Mata Pelajaran", "Link Vicon"],
+      ["GURU001", "2026-09-14", "KELAS 7.1, KELAS 7.2", "Matematika", "https://meet.google.com/abc-defg-hij"],
+      ["GURU002", "2026-09-15", "KELAS 8.1", "Fisika", "https://zoom.us/j/123456789"]
     ];
     const ws = XLSX.utils.aoa_to_sheet(data);
     ws['!cols'] = [{wch: 15}, {wch: 25}, {wch: 30}, {wch: 20}, {wch: 40}];
@@ -210,7 +210,7 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
         
         const schedulesToCreate = [];
         for(let row of jsonArray) {
-          const teacherId = String(row['ID Guru (NIP)'] || row['ID_GURU'] || '').trim();
+          const teacherId = String(row['ID Guru'] || row['ID_GURU'] || '').trim();
           const date = String(row['Tanggal (YYYY-MM-DD)'] || row['TANGGAL'] || '').trim();
           const kelas = String(row['Kelas Tujuan (Pisahkan Koma)'] || row['KELAS'] || '').trim();
           const mapel = String(row['Mata Pelajaran'] || row['MAPEL'] || '').trim();
@@ -465,7 +465,7 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
                   />
                 </th>
                 <th className="p-3 font-extrabold text-center w-12">No</th>
-                <th className="p-3 font-extrabold">NIS / NIP</th>
+                <th className="p-3 font-extrabold">NIS / ID Guru</th>
                 <th className="p-3 font-extrabold">Nama Lengkap</th>
                 <th className="p-3 font-extrabold">Peran</th>
                 <th className="p-3 font-extrabold">Kelas / Mapel</th>
