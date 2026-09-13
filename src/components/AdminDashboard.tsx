@@ -349,7 +349,7 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
           <form onSubmit={handleManualAdd} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">NISN / NIP</label>
+                <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">NIS / ID Guru</label>
                 <input type="text" value={id} onChange={e=>setId(e.target.value)} required placeholder="Contoh: 123456" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-indigo-500" />
               </div>
               <div>

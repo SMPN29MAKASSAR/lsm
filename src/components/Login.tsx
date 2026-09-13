@@ -31,7 +31,7 @@ export default function Login({ users, addToast }: { users: any[], addToast: any
         
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label className="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-wide">ID Pengguna (NISN / NIP)</label>
+            <label className="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-wide">ID Pengguna (NIS / ID Guru)</label>
             <div className="relative">
               <FaIdCard className="absolute left-4 top-4 text-slate-400 text-lg" />
               <input 
