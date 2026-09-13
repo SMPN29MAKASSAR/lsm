@@ -74,9 +74,10 @@ export default function MainApp() {
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      await fetchInitialData();
       if (currentUser) {
         await refreshData();
+      } else {
+        await fetchInitialData();
       }
       setLoading(false);
     };
