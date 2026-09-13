@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useAppStore } from '@/store';
-import { FaChartPie, FaFilePdf, FaCalendarAlt, FaVideo, FaUserCheck, FaFileAlt, FaCheckCircle, FaMinus, FaSearch } from 'react-icons/fa';
+import PanduanKepsekModal from './PanduanKepsekModal';
+import { FaChartPie, FaFilePdf, FaBookOpen, FaCalendarAlt, FaVideo, FaUserCheck, FaFileAlt, FaCheckCircle, FaMinus, FaSearch } from 'react-icons/fa';
 
 export default function KepsekDashboard({ schedules, attendances, submissions, journals, users }: any) {
   const { systemDate } = useAppStore();
@@ -10,6 +11,7 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
   const [filterText, setFilterText] = useState('');
   const [filterDate, setFilterDate] = useState('');
   const [filterHari, setFilterHari] = useState('');
+  const [showPanduan, setShowPanduan] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const totalSchedules = schedules.length;
@@ -51,9 +53,14 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
               <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2 cloud-live-indicator"></span> Real-time Cloud Telemetry
             </p>
           </div>
-          <button onClick={cetakPDF} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg flex items-center text-sm cursor-pointer">
-            <FaFilePdf className="mr-2" /> Cetak Laporan KBM (PDF)
-          </button>
+          <div className="flex gap-3 w-full md:w-auto">
+            <button onClick={() => setShowPanduan(true)} className="flex-1 md:flex-none bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold py-3 px-4 rounded-xl text-sm flex justify-center items-center transition-colors shadow-sm backdrop-blur-sm">
+              <FaBookOpen className="mr-2 text-lg" /> Buku Panduan
+            </button>
+            <button onClick={cetakPDF} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg flex items-center justify-center text-sm cursor-pointer">
+              <FaFilePdf className="mr-2" /> Cetak Laporan KBM (PDF)
+            </button>
+          </div>
         </div>
       </div>
 
@@ -198,6 +205,7 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
         </div>
       </div>
     )}
+    {showPanduan && <PanduanKepsekModal onClose={() => setShowPanduan(false)} />}
     </>
   );
 }
