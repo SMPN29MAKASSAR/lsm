@@ -49,8 +49,6 @@ export default function MainApp() {
     } catch (e) {
       console.error(e);
       addToast('Gagal memuat data pengguna', 'error');
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -71,15 +69,19 @@ export default function MainApp() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchInitialData();
-  }, [fetchInitialData]);
+
 
   useEffect(() => {
-    if (currentUser) {
-      refreshData();
-    }
-  }, [currentUser, refreshData]);
+    const init = async () => {
+      setLoading(true);
+      await fetchInitialData();
+      if (currentUser) {
+        await refreshData();
+      }
+      setLoading(false);
+    };
+    init();
+  }, [currentUser, fetchInitialData, refreshData]);
 
   const extractClasses = (userList: any[]) => {
     const classSet = new Set<string>();
