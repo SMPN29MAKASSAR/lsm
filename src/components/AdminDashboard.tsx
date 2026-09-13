@@ -22,7 +22,7 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
   const [jadwalLink, setJadwalLink] = useState('');
 
   const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
-  const [editJadwalLink, setEditJadwalLink] = useState('');
+  const [editData, setEditData] = useState<any>({});
 
   const [filterText, setFilterText] = useState('');
   const [filterRole, setFilterRole] = useState('');
@@ -313,7 +313,7 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
   const handleSaveEdit = async () => {
     if (!editingScheduleId) return;
     addToast('Menyimpan perubahan...', 'info');
-    const res = await updateSchedule(editingScheduleId, { viconLink: editJadwalLink });
+    const res = await updateSchedule(editingScheduleId, editData);
     if (res.success) {
       addToast('Jadwal berhasil diperbarui', 'success');
       setEditingScheduleId(null);
@@ -638,42 +638,69 @@ export default function AdminDashboard({ users, schedules, addToast, refreshData
                   {filteredSchedules.length === 0 ? (
                     <tr><td colSpan={6} className="p-4 text-center text-slate-400">Belum ada jadwal.</td></tr>
                   ) : (
-                    filteredSchedules.map((s: any, idx: number) => (
-                      <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors text-sm text-slate-700">
-                        <td className="p-3 text-center text-slate-400 font-bold">{idx + 1}</td>
-                        <td className="p-3 font-bold text-slate-900">{s.teacherName || '-'}</td>
-                        <td className="p-3 font-medium">{s.mapel || '-'}</td>
-                        <td className="p-3">
-                          <span className="font-bold">{s.date}</span>
-                          {editingScheduleId === s.id ? (
-                            <div className="mt-2 flex gap-1 items-center">
-                              <input type="text" value={editJadwalLink} onChange={e => setEditJadwalLink(e.target.value)} className="w-full text-xs p-1 border border-blue-300 rounded outline-none" placeholder="Link Zoom/Meet" />
-                              <button onClick={handleSaveEdit} className="text-xs bg-blue-600 text-white px-2 py-1 rounded font-bold hover:bg-blue-700">Simpan</button>
-                              <button onClick={() => setEditingScheduleId(null)} className="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded font-bold hover:bg-slate-300">Batal</button>
-                            </div>
-                          ) : (
-                            s.viconLink && (
-                              <div className="mt-2">
-                                <a href={s.viconLink.startsWith('http') ? s.viconLink : `https://${s.viconLink}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-1 px-3 py-1 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 rounded-full text-[10px] font-bold transition-colors uppercase tracking-wide">
-                                  <span>GABUNG VICON</span>
-                                </a>
+                    filteredSchedules.map((s: any, idx: number) => {
+                      const isEditing = editingScheduleId === s.id;
+                      return (
+                        <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors text-sm text-slate-700">
+                          <td className="p-3 text-center text-slate-400 font-bold">{idx + 1}</td>
+                          <td className="p-3 font-bold text-slate-900">
+                            {isEditing ? (
+                              <input type="text" value={editData.teacherName || ''} onChange={e => setEditData({...editData, teacherName: e.target.value})} className="w-full text-xs p-1.5 border border-slate-300 rounded outline-none" placeholder="Nama Guru" />
+                            ) : (
+                              s.teacherName || '-'
+                            )}
+                          </td>
+                          <td className="p-3 font-medium">
+                            {isEditing ? (
+                              <input type="text" value={editData.mapel || ''} onChange={e => setEditData({...editData, mapel: e.target.value})} className="w-full text-xs p-1.5 border border-slate-300 rounded outline-none" placeholder="Mata Pelajaran" />
+                            ) : (
+                              s.mapel || '-'
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {isEditing ? (
+                              <div className="flex flex-col gap-2">
+                                <input type="date" value={editData.date || ''} onChange={e => setEditData({...editData, date: e.target.value})} className="w-full text-xs p-1.5 border border-slate-300 rounded outline-none" />
+                                <input type="text" value={editData.viconLink || ''} onChange={e => setEditData({...editData, viconLink: e.target.value})} className="w-full text-xs p-1.5 border border-blue-300 rounded outline-none" placeholder="Link Zoom/Meet" />
                               </div>
-                            )
-                          )}
-                        </td>
-                        <td className="p-3"><span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-bold uppercase">{s.kelas || '-'}</span></td>
-                        <td className="p-3 text-right">
-                          <div className="flex justify-end gap-1">
-                            <button onClick={() => { setEditingScheduleId(s.id); setEditJadwalLink(s.viconLink || ''); }} className="text-amber-500 hover:text-amber-700 p-2 hover:bg-amber-50 rounded-lg transition-colors" title="Edit Link Jadwal">
-                              <FaEdit />
-                            </button>
-                            <button onClick={() => handleDeleteSchedule(s.id)} className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Hapus Jadwal">
-                              <FaTrash />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                            ) : (
+                              <>
+                                <span className="font-bold block mb-1">{s.date}</span>
+                                {s.viconLink && (
+                                  <a href={s.viconLink.startsWith('http') ? s.viconLink : `https://${s.viconLink}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-1 px-3 py-1 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 rounded-full text-[10px] font-bold transition-colors uppercase tracking-wide">
+                                    <span>GABUNG VICON</span>
+                                  </a>
+                                )}
+                              </>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {isEditing ? (
+                              <input type="text" value={editData.kelas || ''} onChange={e => setEditData({...editData, kelas: e.target.value})} className="w-full text-xs p-1.5 border border-slate-300 rounded outline-none" placeholder="Kelas Tujuan" />
+                            ) : (
+                              <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-bold uppercase">{s.kelas || '-'}</span>
+                            )}
+                          </td>
+                          <td className="p-3 text-right">
+                            {isEditing ? (
+                              <div className="flex justify-end gap-1 flex-col">
+                                <button onClick={handleSaveEdit} className="text-xs bg-emerald-600 text-white px-2 py-1.5 rounded font-bold hover:bg-emerald-700 w-full mb-1">Simpan</button>
+                                <button onClick={() => setEditingScheduleId(null)} className="text-xs bg-slate-200 text-slate-700 px-2 py-1.5 rounded font-bold hover:bg-slate-300 w-full">Batal</button>
+                              </div>
+                            ) : (
+                              <div className="flex justify-end gap-1">
+                                <button onClick={() => { setEditingScheduleId(s.id); setEditData({ teacherName: s.teacherName, mapel: s.mapel, date: s.date, viconLink: s.viconLink, kelas: s.kelas }); }} className="text-amber-500 hover:text-amber-700 p-2 hover:bg-amber-50 rounded-lg transition-colors" title="Edit Jadwal">
+                                  <FaEdit />
+                                </button>
+                                <button onClick={() => handleDeleteSchedule(s.id)} className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Hapus Jadwal">
+                                  <FaTrash />
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
