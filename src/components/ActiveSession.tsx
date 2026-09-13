@@ -30,7 +30,7 @@ export default function ActiveSession({ schedules, users, attendances, submissio
   const isGuru = currentUser.role === 'guru';
   const isSiswa = currentUser.role === 'siswa';
 
-  const siswaKelas = users.filter((u:any) => u.role === 'siswa' && u.kelas === schedule.kelas);
+  const siswaKelas = users.filter((u:any) => u.role === 'siswa' && u.kelas && schedule.kelas.includes(u.kelas));
   const totalSiswaKelas = siswaKelas.length;
   const hadirinCount = attendances.filter((a:any) => a.scheduleId === schedule.id).length;
   const submitCount = submissions.filter((s:any) => s.scheduleId === schedule.id).length;

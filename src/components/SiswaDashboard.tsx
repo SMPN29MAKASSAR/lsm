@@ -8,7 +8,7 @@ export default function SiswaDashboard({ schedules }: { schedules: any[] }) {
   
   if (!currentUser) return null;
 
-  const mySchedules = schedules.filter(s => s.kelas === currentUser.kelas);
+  const mySchedules = schedules.filter(s => currentUser?.kelas && s.kelas.includes(currentUser.kelas));
   
   const grouped = {} as Record<string, any[]>;
   mySchedules.forEach(s => {

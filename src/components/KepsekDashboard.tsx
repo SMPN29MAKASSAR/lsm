@@ -90,7 +90,7 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                 filteredSchedules.map((s:any) => {
                   const adaJurnal = journals.find((j:any) => j.id === s.id);
                   const totalHadirKelas = attendances.filter((a:any) => a.scheduleId === s.id).length;
-                  const totalSiswaKelas = users?.filter((u:any) => u.role === 'siswa' && u.kelas === s.kelas).length || 0;
+                  const totalSiswaKelas = users?.filter((u:any) => u.role === 'siswa' && u.kelas && s.kelas.includes(u.kelas)).length || 0;
                   return (
                     <tr key={s.id} className="hover:bg-slate-50">
                       <td className="p-4"><span className="font-extrabold text-slate-800 block text-base">{s.kelas}</span><span className="text-xs font-medium text-slate-500"><FaCalendarAlt className="inline mr-1" /> {s.date}</span></td>

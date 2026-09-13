@@ -9,7 +9,7 @@ export default function GuruDashboard({ schedules, classes, addToast, refreshDat
   const { currentUser, setView, systemDate } = useAppStore();
   const [showForm, setShowForm] = useState(false);
   
-  const [kelas, setKelas] = useState('');
+  const [kelas, setKelas] = useState<string[]>([]);
   const [tanggal, setTanggal] = useState(systemDate);
 
   const mySchedules = schedules.filter(s => s.teacherId === currentUser?.id);
@@ -17,22 +17,27 @@ export default function GuruDashboard({ schedules, classes, addToast, refreshDat
   const handleBuat = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
+    if (kelas.length === 0) {
+      addToast("Silakan pilih minimal 1 kelas", "error");
+      return;
+    }
     
     const data = {
       teacherId: currentUser.id,
       teacherName: currentUser.name,
       mapel: currentUser.mapel || '',
-      kelas: kelas,
+      kelas: kelas.join(', '),
       date: tanggal,
     };
     
     const res = await createSchedule(data);
     if(res.success) {
+      addToast("Jadwal sinkronisasi kelas berhasil", "success");
+      setKelas([]);
       setShowForm(false);
-      addToast('Jadwal divalidasi ke Cloud Server.', 'success');
       refreshData();
     } else {
-      addToast('Gagal simpan jadwal.', 'error');
+      addToast("Gagal buat jadwal", "error");
     }
   };
 
@@ -69,13 +74,26 @@ export default function GuruDashboard({ schedules, classes, addToast, refreshDat
             <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-slate-700"><FaTimes /></button>
           </div>
           <form onSubmit={handleBuat} className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Kelas Tujuan</label>
-              <select value={kelas} onChange={e=>setKelas(e.target.value)} required className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500">
-                <option value="" disabled>Pilih Kelas</option>
-                {classes.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Kelas Tujuan (Bisa Pilih &gt; 1)</label>
+                <div className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl max-h-32 overflow-y-auto flex flex-col gap-1">
+                  {classes.map(c => (
+                    <label key={c} className="flex items-center space-x-2 p-1.5 hover:bg-slate-100 rounded cursor-pointer transition-colors">
+                      <input 
+                        type="checkbox" 
+                        checked={kelas.includes(c)} 
+                        onChange={(e) => {
+                          if (e.target.checked) setKelas([...kelas, c]);
+                          else setKelas(kelas.filter(k => k !== c));
+                        }} 
+                        className="accent-indigo-600 rounded cursor-pointer w-4 h-4" 
+                      />
+                      <span className="text-sm font-medium text-slate-700">{c}</span>
+                    </label>
+                  ))}
+                  {classes.length === 0 && <span className="text-sm text-slate-400 p-2">Belum ada data kelas</span>}
+                </div>
+              </div>
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Pilih Tanggal</label>
               <input type="date" value={tanggal} onChange={e=>setTanggal(e.target.value)} required className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500" />
