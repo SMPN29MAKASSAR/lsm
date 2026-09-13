@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAppStore } from '@/store';
-import { createUser, createUsers, deleteUser } from '@/app/actions';
+import { createUser, createUsers, deleteUser, deleteUsers } from '@/app/actions';
 import { FaDatabase, FaFileExcel, FaUserPlus, FaDownload, FaUpload, FaTrash } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 
@@ -16,6 +16,8 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
   const [filterText, setFilterText] = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [filterKelas, setFilterKelas] = useState('');
+  
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const uniqueKelas = Array.from(new Set(users.filter(u => u.kelas).map(u => u.kelas))).sort();
 
@@ -124,10 +126,38 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
       const res = await deleteUser(userId);
       if(res.success) {
         addToast("Pengguna dihapus.", "info");
+        setSelectedIds(prev => prev.filter(id => id !== userId));
         refreshData();
       } else {
         addToast("Gagal hapus.", "error");
       }
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if(confirm(`Anda akan menghapus ${selectedIds.length} data pengguna terpilih dari server. Aksi ini permanen. Yakin?`)) {
+      const res = await deleteUsers(selectedIds);
+      if(res.success) {
+        addToast(`${selectedIds.length} Pengguna berhasil dihapus.`, "info");
+        setSelectedIds([]);
+        refreshData();
+      } else {
+        addToast("Gagal hapus massal.", "error");
+      }
+    }
+  };
+
+  const toggleSelection = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+  };
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      const selectableIds = filteredUsers.filter(u => u.id !== currentUser?.id).map(u => u.id);
+      setSelectedIds(selectableIds);
+    } else {
+      setSelectedIds([]);
     }
   };
 
@@ -205,7 +235,14 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
       
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-6">
         <div className="p-5 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
-          <h3 className="font-extrabold text-slate-800 text-lg">Direktori Pengguna Aktif</h3>
+          <div className="flex items-center gap-3">
+            <h3 className="font-extrabold text-slate-800 text-lg">Direktori Pengguna Aktif</h3>
+            {selectedIds.length > 0 && (
+              <button onClick={handleBulkDelete} className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center shadow-sm transition-colors">
+                <FaTrash className="mr-1.5" /> Hapus {selectedIds.length} Data
+              </button>
+            )}
+          </div>
           <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
             <input type="text" placeholder="Cari Nama / NIS..." value={filterText} onChange={e => setFilterText(e.target.value)} className="p-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-indigo-500" />
             <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="p-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-indigo-500 bg-white">
@@ -226,8 +263,15 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
         </div>
         <div className="overflow-x-auto p-1 max-h-[500px] overflow-y-auto">
           <table className="w-full text-left border-collapse">
-            <thead className="sticky top-0 bg-white shadow-sm">
+            <thead className="sticky top-0 bg-white shadow-sm z-10">
               <tr className="text-[10px] uppercase tracking-wider text-slate-400 border-b-2 border-slate-200">
+                <th className="p-3 font-extrabold text-center w-10">
+                  <input type="checkbox" 
+                    checked={filteredUsers.length > 0 && selectedIds.length === filteredUsers.filter(u => u.id !== currentUser?.id).length}
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 cursor-pointer accent-indigo-600 rounded"
+                  />
+                </th>
                 <th className="p-3 font-extrabold text-center w-12">No</th>
                 <th className="p-3 font-extrabold">NIS / NIP</th>
                 <th className="p-3 font-extrabold">Nama Lengkap</th>
@@ -238,10 +282,21 @@ export default function AdminDashboard({ users, addToast, refreshData }: { users
             </thead>
             <tbody>
               {filteredUsers.length === 0 ? (
-                <tr><td colSpan={6} className="p-4 text-center text-slate-400">Database kosong atau tidak ditemukan.</td></tr>
+                <tr><td colSpan={7} className="p-4 text-center text-slate-400">Database kosong atau tidak ditemukan.</td></tr>
               ) : (
                 filteredUsers.map((u, index) => (
-                  <tr key={u.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors text-sm text-slate-700">
+                  <tr key={u.id} className={`border-b border-slate-100 hover:bg-slate-50 transition-colors text-sm text-slate-700 ${selectedIds.includes(u.id) ? 'bg-indigo-50/50' : ''}`}>
+                    <td className="p-3 text-center">
+                      {u.id !== currentUser?.id ? (
+                        <input type="checkbox" 
+                          checked={selectedIds.includes(u.id)}
+                          onChange={() => toggleSelection(u.id)}
+                          className="w-4 h-4 cursor-pointer accent-indigo-600 rounded"
+                        />
+                      ) : (
+                        <div className="w-4 h-4 mx-auto rounded border border-slate-200 bg-slate-100 opacity-50"></div>
+                      )}
+                    </td>
                     <td className="p-3 text-center text-slate-400 font-bold">{index + 1}</td>
                     <td className="p-3 font-bold">{u.id}</td>
                     <td className="p-3 font-medium text-slate-900">{u.name}</td>

@@ -60,6 +60,20 @@ export async function deleteUser(id: string) {
   }
 }
 
+export async function deleteUsers(ids: string[]) {
+  try {
+    await prisma.user.deleteMany({
+      where: {
+        id: { in: ids }
+      }
+    });
+    revalidatePath('/');
+    return { success: true, count: ids.length };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
 export async function seedUsers() {
   const defaults = [
     { id: '123456', role: 'siswa', name: 'Budi Santoso', kelas: 'X MIPA 1', mapel: '' },
