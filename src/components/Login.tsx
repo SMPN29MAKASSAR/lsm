@@ -51,12 +51,9 @@ export default function Login({ users, addToast }: { users: any[], addToast: any
         </form>
 
         <div className="mt-8 pt-6 border-t border-slate-100">
-          <p className="text-[10px] font-bold text-slate-400 mb-3 uppercase tracking-wider text-center">Petunjuk Akses Default</p>
-          <div className="grid grid-cols-2 gap-2 text-xs font-medium text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200">
-            <div><span className="font-bold text-slate-800">ADMIN</span> <span className="text-[10px] text-slate-500">(Tata Usaha)</span></div>
-            <div><span className="font-bold text-slate-800">KEPSEK</span> <span className="text-[10px] text-slate-500">(Pimpinan)</span></div>
-            <div><span className="font-bold text-slate-800">NIP001</span> <span className="text-[10px] text-slate-500">(Contoh Guru)</span></div>
-            <div><span className="font-bold text-slate-800">123456</span> <span className="text-[10px] text-slate-500">(Contoh Siswa)</span></div>
+          <p className="text-[10px] font-bold text-slate-400 mb-3 uppercase tracking-wider text-center">Petunjuk Akses</p>
+          <div className="text-xs font-medium text-slate-600 bg-slate-50 p-4 rounded-lg border border-slate-200 text-center leading-relaxed">
+            Silakan masukkan <span className="font-bold text-slate-800">NIS</span> (Siswa), <span className="font-bold text-slate-800">NIP</span> (Guru), atau username khusus yang diberikan untuk <span className="font-bold text-slate-800">Tata Usaha & Kepala Sekolah</span>.
           </div>
         </div>
       </div>
