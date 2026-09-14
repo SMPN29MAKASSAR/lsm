@@ -44,7 +44,14 @@ body {
   #app-container { padding: 0 !important; max-width: 100% !important; }
   #laporan-tabel { border: none !important; box-shadow: none !important; margin: 0 !important; }
   #laporan-tabel h3 { text-align: center; font-size: 24pt; margin-bottom: 20px; }
-  table { width: 100%; border-collapse: collapse; }
+  table { width: 100%; border-collapse: separate !important; border-spacing: 0 !important; }
   th, td { border: 1px solid #000 !important; padding: 8px !important; color: #000 !important; }
   th { background-color: #f3f4f6 !important; font-weight: bold !important; }
+  
+  table { page-break-inside: auto !important; }
+  tr { page-break-inside: avoid !important; page-break-after: auto !important; break-inside: avoid !important; }
+  td { page-break-inside: avoid !important; break-inside: avoid !important; }
+  thead { display: table-header-group !important; }
+  tbody { page-break-inside: auto !important; }
 }
+
