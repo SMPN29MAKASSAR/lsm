@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useAppStore } from '@/store';
 import PanduanKepsekModal from './PanduanKepsekModal';
-import { FaChartPie, FaFilePdf, FaFileWord, FaBookOpen, FaCalendarAlt, FaVideo, FaUserCheck, FaFileAlt, FaCheckCircle, FaMinus, FaSearch } from 'react-icons/fa';
+import { FaChartPie, FaFilePdf, FaBookOpen, FaCalendarAlt, FaVideo, FaUserCheck, FaFileAlt, FaCheckCircle, FaMinus, FaSearch } from 'react-icons/fa';
 
 export default function KepsekDashboard({ schedules, attendances, submissions, journals, users }: any) {
   const { systemDate, systemTime } = useAppStore();
@@ -37,116 +37,8 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
   // Calculate attendance per student
   const siswaList = users?.filter((u:any) => u.role === 'siswa') || [];
 
-  const cetakWord = () => {
-    let tableRows = '';
-    
-    filteredSchedules.forEach((s: any) => {
-        const adaJurnal = journals.find((j:any) => j.id === s.id);
-        const totalHadirKelas = attendances.filter((a:any) => a.scheduleId === s.id).length;
-        const totalSiswaKelas = users?.filter((u:any) => u.role === 'siswa' && u.kelas && s.kelas.includes(u.kelas)).length || 0;
-        
-        let statusLabel = 'TERTUTUP';
-        if (s.viconLink) {
-            if (s.date < systemDate) {
-                statusLabel = 'BERAKHIR';
-            } else if (s.date > systemDate) {
-                statusLabel = 'TERJADWAL';
-            } else {
-                const [h, m] = systemTime.split(':').map(Number);
-                const currentMins = h * 60 + m;
-                if (s.startTime && s.endTime) {
-                    const [sh, sm] = s.startTime.split(':').map(Number);
-                    const [eh, em] = s.endTime.split(':').map(Number);
-                    const startMins = sh * 60 + sm;
-                    const endMins = eh * 60 + em;
-                    if (currentMins >= startMins && currentMins <= endMins) {
-                        statusLabel = 'BERLANGSUNG';
-                    } else if (currentMins > endMins) {
-                        statusLabel = 'BERAKHIR';
-                    } else {
-                        statusLabel = 'TERJADWAL';
-                    }
-                } else {
-                    statusLabel = 'BERLANGSUNG';
-                }
-            }
-        }
-
-        let imagesHtml = '';
-        if (adaJurnal && adaJurnal.photoUrls && adaJurnal.photoUrls.length > 0) {
-            adaJurnal.photoUrls.forEach((url: string) => {
-                imagesHtml += `<img src="${window.location.origin}/api/proxy?url=${encodeURIComponent(url)}" style="max-width: 150px; height: auto; margin: 5px; border-radius: 8px;" />`;
-            });
-        }
-
-        tableRows += `
-            <tr>
-                <td>
-                    <strong>${s.kelas}</strong><br/>
-                    <small>${s.date}</small>
-                </td>
-                <td>
-                    <strong>${s.mapel}</strong><br/>
-                    <small>${s.teacherName}</small>
-                </td>
-                <td style="text-align:center;">${statusLabel}</td>
-                <td style="text-align:center;">${s.viconLink || '-'}</td>
-                <td style="text-align:center;">${totalHadirKelas} / ${totalSiswaKelas}</td>
-                <td style="text-align:center;">${imagesHtml || '-'}</td>
-            </tr>
-        `;
-    });
-
-    const html = `
-    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-    <head>
-      <meta charset="utf-8">
-      <title>Laporan KBM</title>
-      <style>
-        @page WordSection1 {
-            size: 29.7cm 21cm;
-            margin: 2cm 2cm 2cm 2cm;
-            mso-page-orientation: landscape;
-        }
-        div.WordSection1 { page: WordSection1; }
-        table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 11pt; }
-        th, td { border: 1px solid #000; padding: 12px; text-align: left; vertical-align: middle; }
-        th { background-color: #f2f2f2; text-align: center; font-weight: bold; }
-      </style>
-    </head>
-    <body>
-      <div class="WordSection1">
-        <h2 style="text-align: center; font-family: Arial, sans-serif;">Laporan Pembelajaran Daring</h2>
-        <h3 style="text-align: center; font-family: Arial, sans-serif;">UPT SPF SMPN 29 Makassar</h3>
-        <p style="font-family: Arial, sans-serif;">Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}</p>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 15%;">Tanggal & Kelas</th>
-                    <th style="width: 20%;">Mata Pelajaran / Guru</th>
-                    <th style="width: 10%;">Status Vicon</th>
-                    <th style="width: 15%;">Link Vicon</th>
-                    <th style="width: 10%;">Siswa Hadir</th>
-                    <th style="width: 30%;">Bukti</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${tableRows || '<tr><td colspan="6" style="text-align:center;">Belum ada KBM.</td></tr>'}
-            </tbody>
-        </table>
-      </div>
-    </body>
-    </html>
-    `;
-
-    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Laporan_KBM_${new Date().toISOString().split('T')[0]}.doc`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const cetakPDF = () => {
+    window.print();
   };
 
   return (
@@ -165,9 +57,9 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
             <button onClick={() => setShowPanduan(true)} className="flex-1 md:flex-none bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold py-3 px-4 rounded-xl text-sm flex justify-center items-center transition-colors shadow-sm backdrop-blur-sm">
               <FaBookOpen className="mr-2 text-lg" /> Buku Panduan
             </button>
-            <button onClick={cetakWord} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg flex items-center justify-center text-sm cursor-pointer">
-                <FaFileWord className="mr-2" /> Cetak Laporan (Word)
-              </button>
+            <button onClick={cetakPDF} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg flex items-center justify-center text-sm cursor-pointer">
+              <FaFilePdf className="mr-2" /> Cetak Laporan KBM (PDF)
+            </button>
           </div>
         </div>
       </div>
@@ -179,7 +71,7 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden"><FaFileAlt className="absolute top-0 right-0 p-4 opacity-5 text-6xl text-indigo-500" /><p className="text-xs text-slate-400 font-bold uppercase mb-2 tracking-wider">Bukti Fisik Tugas</p><p className="text-4xl font-extrabold text-indigo-600">{totalTugas}</p></div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden print:overflow-visible" id="laporan-tabel">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" id="laporan-tabel">
         <div className="p-5 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
           <h3 className="font-extrabold text-slate-800 text-lg">
             Laporan Pembelajaran Daring <br className="hidden print:block" />
@@ -222,7 +114,7 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
               </div>
             </div>
           </div>
-          <div className="overflow-x-auto print:overflow-visible p-1">
+          <div className="overflow-x-auto p-1">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b-2 border-slate-200">
@@ -234,8 +126,9 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                 <th className="p-4 font-extrabold text-center">Bukti</th>
               </tr>
             </thead>
-            {filteredSchedules.length === 0 ? (
-                <tbody className="text-sm text-slate-700"><tr><td colSpan={6} className="p-8 text-center text-slate-400">Belum ada KBM.</td></tr></tbody>
+            <tbody className="text-sm text-slate-700 divide-y divide-slate-100">
+              {filteredSchedules.length === 0 ? (
+                <tr><td colSpan={6} className="p-8 text-center text-slate-400">Belum ada KBM.</td></tr>
               ) : (
                 filteredSchedules.map((s:any) => {
                   const adaJurnal = journals.find((j:any) => j.id === s.id);
@@ -280,8 +173,7 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                   }
 
                   return (
-                    <tbody key={s.id} className="text-sm text-slate-700 border-b border-slate-100 print:break-inside-avoid" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                    <tr className="hover:bg-slate-50">
+                    <tr key={s.id} className="hover:bg-slate-50">
                       <td className="p-4"><span className="font-extrabold text-slate-800 block text-base">{s.kelas}</span><span className="text-xs font-medium text-slate-500"><FaCalendarAlt className="inline mr-1" /> {s.date}</span></td>
                       <td className="p-4"><span className="font-bold text-indigo-700 block">{s.mapel}</span><span className="text-xs font-medium text-slate-500">{s.teacherName}</span></td>
                       <td className="p-4 text-center">
@@ -321,10 +213,10 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                         ) : <FaMinus className="text-slate-300 mx-auto text-xl" />}
                       </td>
                     </tr>
-                  </tbody>
-                )
-              })
-            )}
+                  )
+                })
+              )}
+            </tbody>
           </table>
           
           <div className="hidden print:flex flex-col items-end mt-12 pr-12 pb-10">
