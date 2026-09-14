@@ -53,6 +53,7 @@ model Submission {
   text       String
   fileName   String?
   fileUrl    String?
+  photoUrls  String[]
   createdAt  DateTime @default(now())
 
   @@unique([scheduleId, userId])

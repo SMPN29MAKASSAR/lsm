@@ -18,7 +18,7 @@ export default function ActiveSession({ schedules, users, attendances, submissio
   // ImgBB Upload States
   const [isUploading, setIsUploading] = useState(false);
   const [guruFile, setGuruFile] = useState<File | null>(null);
-  const [siswaFile, setSiswaFile] = useState<File | null>(null);
+  const [siswaFiles, setSiswaFiles] = useState<File[]>([]);
 
   const [jurnalPhotos, setJurnalPhotos] = useState<File[]>([]);
   const [deletedPhotos, setDeletedPhotos] = useState<string[]>([]);
@@ -198,12 +198,16 @@ export default function ActiveSession({ schedules, users, attendances, submissio
       let fileUrl = '';
       let fileName = '';
       
-      if (siswaFile) {
-        fileUrl = await uploadToImgBB(siswaFile);
-        fileName = siswaFile.name;
-      }
+      let photoUrls: string[] = [];
+        if (siswaFiles.length > 0) {
+          addToast(`Mengupload ${siswaFiles.length} file tugas...`, "info");
+          const uploadPromises = siswaFiles.map(file => uploadToImgBB(file));
+          photoUrls = await Promise.all(uploadPromises);
+          fileUrl = photoUrls[0];
+          fileName = siswaFiles.length === 1 ? siswaFiles[0].name : `${siswaFiles.length} file diupload`;
+        }
       
-      const res = await createSubmission(schedule.id, currentUser.id, studentText, fileName, fileUrl);
+      const res = await createSubmission(schedule.id, currentUser.id, studentText, fileName, fileUrl, photoUrls);
       if(res.success) { 
         addToast("Tugas terkirim ke Guru.", "success"); 
         refreshData(); 
@@ -270,17 +274,21 @@ export default function ActiveSession({ schedules, users, attendances, submissio
                     <div className="mt-4 text-left bg-slate-50 p-4 rounded-xl border border-slate-200">
                       <p className="text-xs font-bold text-slate-400 mb-2 uppercase">Jawaban Anda:</p>
                       <p className="text-sm font-medium text-slate-700 p-3 bg-white rounded border border-slate-100">"{mySubmission.text}"</p>
-                      {mySubmission.fileUrl && (
-                        <div className="mt-3">
-                          <p className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Lampiran Gambar Anda</p>
-                          <img 
-                            src={`/api/proxy?url=${encodeURIComponent(mySubmission.fileUrl)}`} 
-                            alt={mySubmission.fileName || 'Lampiran'} 
-                            className="w-full max-w-sm rounded-xl border border-slate-200 shadow-sm"
-                            loading="lazy"
-                          />
-                        </div>
-                      )}
+                      {(mySubmission.photoUrls && mySubmission.photoUrls.length > 0) ? (
+                          <div className="mt-3">
+                            <p className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Lampiran Gambar Anda</p>
+                            <div className="grid grid-cols-2 gap-2">
+                              {mySubmission.photoUrls.map((url: string, i: number) => (
+                                <img key={i} src={`/api/proxy?url=${encodeURIComponent(url)}`} alt="Lampiran Anda" className="w-full rounded-xl border border-slate-200 shadow-sm aspect-video object-cover" loading="lazy" />
+                              ))}
+                            </div>
+                          </div>
+                        ) : mySubmission.fileUrl ? (
+                          <div className="mt-3">
+                            <p className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Lampiran Gambar Anda</p>
+                            <img src={`/api/proxy?url=${encodeURIComponent(mySubmission.fileUrl)}`} alt="Lampiran Anda" className="w-full max-w-sm rounded-xl border border-slate-200 shadow-sm" loading="lazy" />
+                          </div>
+                        ) : null}
                     </div>
                   </div>
                 ) : (
@@ -311,9 +319,9 @@ export default function ActiveSession({ schedules, users, attendances, submissio
                         <textarea value={studentText} onChange={e=>setStudentText(e.target.value)} required rows={3} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-amber-500"></textarea>
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-wide">Lampiran Gambar Bukti (Opsional)</label>
-                        <input type="file" accept="image/*" onChange={e => setSiswaFile(e.target.files?.[0] || null)} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
-                        <p className="text-[10px] text-slate-400 mt-1">Gambar akan diupload ke ImgBB.</p>
+                        <label className="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-wide">Lampiran Gambar Bukti (Opsional, Bisa Lebih Dari Satu)</label>
+                          <input type="file" multiple accept="image/*" onChange={e => { if (e.target.files) setSiswaFiles(Array.from(e.target.files)); }} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                          <p className="text-[10px] text-slate-400 mt-1">Gambar akan diupload ke ImgBB. {siswaFiles.length > 0 && <span className="text-emerald-600 font-bold">{siswaFiles.length} foto siap dikirim.</span>}</p>
                       </div>
                       <button type="submit" disabled={isUploading} className="w-full bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl shadow-lg mt-4 flex items-center justify-center">
                         {isUploading ? <><FaSpinner className="mr-2 animate-spin" /> Mengunggah...</> : <><FaCloudUploadAlt className="mr-2" /> Kirim ke Guru</>}
@@ -474,17 +482,21 @@ export default function ActiveSession({ schedules, users, attendances, submissio
                       {tugas ? (
                         <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-inner">
                           <p className="text-sm font-medium text-slate-700 italic">"{tugas.text}"</p>
-                            {tugas.fileUrl && (
-                              <div className="mt-3">
-                                <p className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Lampiran Gambar Siswa</p>
-                                <img 
-                                  src={`/api/proxy?url=${encodeURIComponent(tugas.fileUrl)}`} 
-                                  alt="Lampiran Siswa" 
-                                  className="w-full max-w-xs rounded-xl border border-slate-200 shadow-sm"
-                                  loading="lazy"
-                                />
-                              </div>
-                            )}
+                            {(tugas.photoUrls && tugas.photoUrls.length > 0) ? (
+                                <div className="mt-3">
+                                  <p className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Lampiran Gambar Siswa</p>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    {tugas.photoUrls.map((url: string, i: number) => (
+                                      <img key={i} src={`/api/proxy?url=${encodeURIComponent(url)}`} alt="Lampiran Siswa" className="w-full rounded-xl border border-slate-200 shadow-sm aspect-video object-cover" loading="lazy" />
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : tugas.fileUrl ? (
+                                <div className="mt-3">
+                                  <p className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Lampiran Gambar Siswa</p>
+                                  <img src={`/api/proxy?url=${encodeURIComponent(tugas.fileUrl)}`} alt="Lampiran Siswa" className="w-full max-w-xs rounded-xl border border-slate-200 shadow-sm" loading="lazy" />
+                                </div>
+                              ) : null}
                         </div>
                       ) : (
                         <div className="h-full flex items-center justify-center bg-slate-50 rounded-lg border border-slate-200 border-dashed py-3"><span className="text-xs font-bold text-slate-400">Belum ada tugas disubmit</span></div>

@@ -178,12 +178,12 @@ export async function getSubmissions() {
   }
 }
 
-export async function createSubmission(scheduleId: string, userId: string, text: string, fileName?: string, fileUrl?: string) {
+export async function createSubmission(scheduleId: string, userId: string, text: string, fileName?: string, fileUrl?: string, photoUrls?: string[]) {
   try {
     await prisma.submission.upsert({
       where: { scheduleId_userId: { scheduleId, userId } },
-      update: { text, fileName, fileUrl },
-      create: { scheduleId, userId, text, fileName, fileUrl },
+      update: { text, fileName, fileUrl, ...(photoUrls ? { photoUrls } : {}) },
+      create: { scheduleId, userId, text, fileName, fileUrl, photoUrls: photoUrls || [] },
     });
     revalidatePath('/');
     return { success: true };
