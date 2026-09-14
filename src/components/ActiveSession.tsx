@@ -21,6 +21,7 @@ export default function ActiveSession({ schedules, users, attendances, submissio
   const [siswaFile, setSiswaFile] = useState<File | null>(null);
 
   const [jurnalPhotos, setJurnalPhotos] = useState<File[]>([]);
+  const [deletedPhotos, setDeletedPhotos] = useState<string[]>([]);
   const [isUploadingJurnal, setIsUploadingJurnal] = useState(false);
   const existingJurnal = journals.find((j:any) => j.id === activeScheduleId);
   if (!currentUser) return null;
@@ -153,7 +154,7 @@ export default function ActiveSession({ schedules, users, attendances, submissio
   const handleSetJurnal = async () => {
     try {
       setIsUploadingJurnal(true);
-      let newPhotos = existingJurnal?.photoUrls || [];
+      let newPhotos = (existingJurnal?.photoUrls || []).filter((url: string) => !deletedPhotos.includes(url));
       
       if (jurnalPhotos.length > 0) {
         addToast(`Mengupload ${jurnalPhotos.length} foto dokumentasi...`, "info");
@@ -167,6 +168,7 @@ export default function ActiveSession({ schedules, users, attendances, submissio
         addToast("Jurnal disinkronisasi.", "success"); 
         refreshData(); 
         setJurnalPhotos([]); 
+          setDeletedPhotos([]); 
       }
     } catch (error: any) {
       addToast(error.message, "error");
@@ -391,15 +393,26 @@ export default function ActiveSession({ schedules, users, attendances, submissio
                   {jurnalPhotos.length > 0 && <p className="text-xs text-emerald-600 font-bold mt-2">{jurnalPhotos.length} foto siap diupload</p>}
                 </div>
 
-                {existingJurnal?.photoUrls && existingJurnal.photoUrls.length > 0 && (
-                  <div className="mb-4 grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {existingJurnal.photoUrls.map((url: string, idx: number) => (
-                      <div key={idx} className="relative rounded-lg overflow-hidden border border-slate-200 shadow-sm aspect-video">
-                        <img src={`/api/proxy?url=${encodeURIComponent(url)}`} className="object-cover w-full h-full" alt={`Dokumentasi ${idx+1}`} loading="lazy" />
+                {(() => {
+                    const displayPhotos = (existingJurnal?.photoUrls || []).filter((url: string) => !deletedPhotos.includes(url));
+                    if (displayPhotos.length === 0) return null;
+                    return (
+                      <div className="mb-4 grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {displayPhotos.map((url: string, idx: number) => (
+                          <div key={idx} className="relative rounded-lg overflow-hidden border border-slate-200 shadow-sm aspect-video group">
+                            <img src={`/api/proxy?url=${encodeURIComponent(url)}`} className="object-cover w-full h-full" alt={`Dokumentasi ${idx+1}`} loading="lazy" />
+                            <button 
+                               onClick={(e) => { e.preventDefault(); setDeletedPhotos(prev => [...prev, url]); }} 
+                               className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-700 text-white w-7 h-7 rounded-full flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity shadow-md"
+                               title="Hapus foto ini (Jangan lupa klik Simpan setelahnya)"
+                            >
+                               <FaTimes size={14} />
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    );
+                  })()}
 
                 <button onClick={handleSetJurnal} disabled={isUploadingJurnal} className={`px-5 py-2.5 rounded-xl font-bold w-full text-sm transition-colors ${isUploadingJurnal ? 'bg-slate-100 text-slate-400' : 'bg-slate-800 hover:bg-slate-900 text-white shadow-md'}`}>
                   {isUploadingJurnal ? <><FaSpinner className="animate-spin inline mr-2" /> Menyimpan Jurnal & Foto...</> : 'Simpan Jurnal & Dokumentasi'}
