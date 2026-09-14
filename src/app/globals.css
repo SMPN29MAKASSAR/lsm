@@ -38,7 +38,19 @@ body {
   body { 
     background: white !important; 
     padding: 15mm 10mm !important; 
-    -webkit-print-color-adjust: exact; 
+    -webkit-print-color-adjust: exact;
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: auto !important;
+    position: static !important;
+  }
+  main, #app-container, #__next, html {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: auto !important;
+    position: static !important;
   }
   header, .no-print, button { display: none !important; }
   #app-container { padding: 0 !important; max-width: 100% !important; }
