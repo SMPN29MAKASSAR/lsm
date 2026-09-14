@@ -71,7 +71,7 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden"><FaFileAlt className="absolute top-0 right-0 p-4 opacity-5 text-6xl text-indigo-500" /><p className="text-xs text-slate-400 font-bold uppercase mb-2 tracking-wider">Bukti Fisik Tugas</p><p className="text-4xl font-extrabold text-indigo-600">{totalTugas}</p></div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" id="laporan-tabel">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden print:overflow-visible" id="laporan-tabel">
         <div className="p-5 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
           <h3 className="font-extrabold text-slate-800 text-lg">
             Laporan Pembelajaran Daring <br className="hidden print:block" />
@@ -114,7 +114,7 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
               </div>
             </div>
           </div>
-          <div className="overflow-x-auto p-1">
+          <div className="overflow-x-auto print:overflow-visible p-1">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b-2 border-slate-200">
@@ -126,9 +126,8 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                 <th className="p-4 font-extrabold text-center">Bukti</th>
               </tr>
             </thead>
-            <tbody className="text-sm text-slate-700 divide-y divide-slate-100">
-              {filteredSchedules.length === 0 ? (
-                <tr><td colSpan={6} className="p-8 text-center text-slate-400">Belum ada KBM.</td></tr>
+            {filteredSchedules.length === 0 ? (
+                <tbody className="text-sm text-slate-700"><tr><td colSpan={6} className="p-8 text-center text-slate-400">Belum ada KBM.</td></tr></tbody>
               ) : (
                 filteredSchedules.map((s:any) => {
                   const adaJurnal = journals.find((j:any) => j.id === s.id);
@@ -173,7 +172,8 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                   }
 
                   return (
-                    <tr key={s.id} className="hover:bg-slate-50 print:break-inside-avoid" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                    <tbody key={s.id} className="text-sm text-slate-700 border-b border-slate-100 print:break-inside-avoid" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                    <tr className="hover:bg-slate-50">
                       <td className="p-4"><span className="font-extrabold text-slate-800 block text-base">{s.kelas}</span><span className="text-xs font-medium text-slate-500"><FaCalendarAlt className="inline mr-1" /> {s.date}</span></td>
                       <td className="p-4"><span className="font-bold text-indigo-700 block">{s.mapel}</span><span className="text-xs font-medium text-slate-500">{s.teacherName}</span></td>
                       <td className="p-4 text-center">
@@ -213,10 +213,10 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                         ) : <FaMinus className="text-slate-300 mx-auto text-xl" />}
                       </td>
                     </tr>
-                  )
-                })
-              )}
-            </tbody>
+                  </tbody>
+                )
+              })
+            )}
           </table>
           
           <div className="hidden print:flex flex-col items-end mt-12 pr-12 pb-10">
