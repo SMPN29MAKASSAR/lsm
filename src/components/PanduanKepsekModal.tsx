@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { FaTimes, FaBookOpen, FaChartPie, FaSearch, FaFilePdf, FaImage, FaCheckCircle } from 'react-icons/fa';
+import { FaTimes, FaBookOpen, FaChartPie, FaSearch, FaFileWord, FaImage, FaCheckCircle } from 'react-icons/fa';
 
 export default function PanduanKepsekModal({ onClose }: { onClose: () => void }) {
   return (
@@ -72,9 +72,9 @@ export default function PanduanKepsekModal({ onClose }: { onClose: () => void })
                 <FaFilePdf />
               </div>
               <div>
-                <h3 className="font-bold text-slate-800 text-lg mb-1">Cetak Laporan PDF</h3>
+                <h3 className="font-bold text-slate-800 text-lg mb-1">Cetak Laporan Word</h3>
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  Tekan tombol <strong>"Cetak Laporan KBM (PDF)"</strong> di sudut kanan atas untuk mengunduh laporan ini. Laporan yang dicetak akan mengikuti filter yang sedang aktif, dan secara otomatis menyembunyikan tombol-tombol agar siap diberikan ke pengawas sekolah atau disimpannya sebagai arsip.
+                  Tekan tombol <strong>"Cetak Laporan (Word)"</strong> di sudut kanan atas untuk mengunduh laporan ini. Laporan yang dicetak akan mengikuti filter yang sedang aktif, dan secara otomatis menyembunyikan tombol-tombol agar siap diberikan ke pengawas sekolah atau disimpannya sebagai arsip.
                 </p>
               </div>
             </div>
