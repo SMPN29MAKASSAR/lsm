@@ -6,7 +6,7 @@ import PanduanKepsekModal from './PanduanKepsekModal';
 import { FaChartPie, FaFilePdf, FaBookOpen, FaCalendarAlt, FaVideo, FaUserCheck, FaFileAlt, FaCheckCircle, FaMinus, FaSearch } from 'react-icons/fa';
 
 export default function KepsekDashboard({ schedules, attendances, submissions, journals, users }: any) {
-  const { systemDate } = useAppStore();
+  const { systemDate, systemTime } = useAppStore();
   
   const [filterText, setFilterText] = useState('');
   const [filterDate, setFilterDate] = useState('');
@@ -134,11 +134,51 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                   const adaJurnal = journals.find((j:any) => j.id === s.id);
                   const totalHadirKelas = attendances.filter((a:any) => a.scheduleId === s.id).length;
                   const totalSiswaKelas = users?.filter((u:any) => u.role === 'siswa' && u.kelas && s.kelas.includes(u.kelas)).length || 0;
+
+                  let statusLabel = 'TERTUTUP';
+                  let statusColor = 'bg-slate-100 text-slate-500';
+                  
+                  if (s.viconLink) {
+                    if (s.date < systemDate) {
+                      statusLabel = 'BERAKHIR';
+                      statusColor = 'bg-slate-100 text-slate-500';
+                    } else if (s.date > systemDate) {
+                      statusLabel = 'TERJADWAL';
+                      statusColor = 'bg-indigo-100 text-indigo-700';
+                    } else {
+                      const [h, m] = systemTime.split(':').map(Number);
+                      const currentMins = h * 60 + m;
+                      
+                      if (s.startTime && s.endTime) {
+                        const [sh, sm] = s.startTime.split(':').map(Number);
+                        const [eh, em] = s.endTime.split(':').map(Number);
+                        const startMins = sh * 60 + sm;
+                        const endMins = eh * 60 + em;
+                        
+                        if (currentMins >= startMins && currentMins <= endMins) {
+                          statusLabel = 'BERLANGSUNG';
+                          statusColor = 'bg-emerald-100 text-emerald-700';
+                        } else if (currentMins > endMins) {
+                          statusLabel = 'BERAKHIR';
+                          statusColor = 'bg-slate-100 text-slate-500';
+                        } else {
+                          statusLabel = 'TERJADWAL';
+                          statusColor = 'bg-indigo-100 text-indigo-700';
+                        }
+                      } else {
+                        statusLabel = 'BERLANGSUNG';
+                        statusColor = 'bg-emerald-100 text-emerald-700';
+                      }
+                    }
+                  }
+
                   return (
                     <tr key={s.id} className="hover:bg-slate-50">
                       <td className="p-4"><span className="font-extrabold text-slate-800 block text-base">{s.kelas}</span><span className="text-xs font-medium text-slate-500"><FaCalendarAlt className="inline mr-1" /> {s.date}</span></td>
                       <td className="p-4"><span className="font-bold text-indigo-700 block">{s.mapel}</span><span className="text-xs font-medium text-slate-500">{s.teacherName}</span></td>
-                      <td className="p-4 text-center">{s.viconLink ? <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded text-[10px] font-bold uppercase">Terbuka</span> : <span className="bg-slate-100 text-slate-500 px-3 py-1 rounded text-[10px] font-bold uppercase">Tertutup</span>}</td>
+                      <td className="p-4 text-center">
+                        <span className={`px-3 py-1 rounded text-[10px] font-bold uppercase ${statusColor}`}>{statusLabel}</span>
+                      </td>
                       <td className="p-4 text-center no-print">
                         {s.viconLink ? (() => {
                           const href = s.viconLink.startsWith('http') ? s.viconLink : `https://${s.viconLink}`;
