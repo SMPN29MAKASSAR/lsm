@@ -69,7 +69,7 @@ export default function PanduanKepsekModal({ onClose }: { onClose: () => void })
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4">
               <div className="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center shrink-0 text-xl">
-                <FaFilePdf />
+                <FaFileWord />
               </div>
               <div>
                 <h3 className="font-bold text-slate-800 text-lg mb-1">Cetak Laporan Word</h3>
