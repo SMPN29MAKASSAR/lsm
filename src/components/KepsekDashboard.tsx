@@ -71,7 +71,7 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden"><FaFileAlt className="absolute top-0 right-0 p-4 opacity-5 text-6xl text-indigo-500" /><p className="text-xs text-slate-400 font-bold uppercase mb-2 tracking-wider">Bukti Fisik Tugas</p><p className="text-4xl font-extrabold text-indigo-600">{totalTugas}</p></div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" id="laporan-tabel">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden print:overflow-visible print:border-none print:shadow-none" id="laporan-tabel">
         <div className="p-5 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
           <h3 className="font-extrabold text-slate-800 text-lg">
             Laporan Pembelajaran Daring <br className="hidden print:block" />
@@ -114,7 +114,7 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
               </div>
             </div>
           </div>
-          <div className="overflow-x-auto p-1">
+          <div className="overflow-x-auto print:overflow-visible p-1">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b-2 border-slate-200">
@@ -173,7 +173,7 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                   }
 
                   return (
-                    <tr key={s.id} className="hover:bg-slate-50">
+                    <tr key={s.id} className="hover:bg-slate-50 print:break-inside-avoid" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                       <td className="p-4"><span className="font-extrabold text-slate-800 block text-base">{s.kelas}</span><span className="text-xs font-medium text-slate-500"><FaCalendarAlt className="inline mr-1" /> {s.date}</span></td>
                       <td className="p-4"><span className="font-bold text-indigo-700 block">{s.mapel}</span><span className="text-xs font-medium text-slate-500">{s.teacherName}</span></td>
                       <td className="p-4 text-center">
@@ -197,14 +197,14 @@ export default function KepsekDashboard({ schedules, attendances, submissions, j
                           <div>
                             <FaCheckCircle className="text-emerald-500 mx-auto text-xl mb-1" />
                             {adaJurnal.photoUrls && adaJurnal.photoUrls.length > 0 && (
-                                <div className="flex flex-wrap justify-center gap-2 mt-3">
+                                <div className="flex print:block print:text-center flex-wrap justify-center gap-2 mt-3">
                                   {adaJurnal.photoUrls.map((url: string, i: number) => {
                                     const len = adaJurnal.photoUrls.length;
                                     let imgClass = "h-48 md:h-64";
                                     if (len === 2) imgClass = "h-32 md:h-48";
                                     else if (len >= 3) imgClass = "h-24 md:h-32";
                                     return (
-                                      <img key={i} onClick={() => setSelectedImage(url)} src={`/api/proxy?url=${encodeURIComponent(url)}`} className={`${imgClass} w-auto rounded-xl object-contain shadow-md border-2 border-slate-200 hover:shadow-lg hover:border-indigo-400 transition-all cursor-pointer`} alt="Dok" loading="lazy" />
+                                      <img key={i} onClick={() => setSelectedImage(url)} src={`/api/proxy?url=${encodeURIComponent(url)}`} className={`${imgClass} print:inline-block print:h-40 print:w-auto print:mx-1 w-auto rounded-xl object-contain shadow-md border-2 border-slate-200 hover:shadow-lg hover:border-indigo-400 transition-all cursor-pointer`} alt="Dok" loading="lazy" />
                                     );
                                   })}
                                 </div>
